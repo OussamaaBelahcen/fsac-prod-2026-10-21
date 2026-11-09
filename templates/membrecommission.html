@@ -1,0 +1,1097 @@
+{% extends "base.html" %}
+{% block title %}Mes Dossiers - Commission Scientifique{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/Style_Commission.css') }}">
+<style>
+    .banner-primary {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0B162C 0%, #043775 50%, #0258b3 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        text-align: center;
+        isolation: isolate;
+    }
+    .banner-primary::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,.1), transparent 60%),
+                    radial-gradient(ellipse at 80% 50%, rgba(255,255,255,.08), transparent 60%);
+        z-index: 0;
+    }
+    .banner-primary h1 {
+        position: relative;
+        z-index: 1;
+        font-size: 22px;
+        margin-bottom: 8px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #fff;
+        text-transform: uppercase;
+    }
+    .banner-primary p {
+        position: relative;
+        z-index: 1;
+        font-size: 14px;
+        color: rgba(255,255,255,.8);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .content-wrapper .table-responsive {
+        border-radius: 12px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .coord-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: transparent;
+    }
+    .coord-table thead tr {
+        background: linear-gradient(135deg, #0B162C, #043775);
+    }
+    .coord-table th {
+        padding: 14px 18px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: rgba(255, 255, 255, 0.85);
+        border-bottom: none;
+        white-space: nowrap;
+        text-align: center;
+    }
+    .coord-table td {
+        padding: 14px 18px;
+        font-size: 13px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        color: #1e293b;
+        background: white;
+        transition: background 0.2s;
+        text-align: center;
+    }
+    .coord-table tbody tr {
+        transition: background 0.2s;
+    }
+    .coord-table tbody tr:hover td {
+        background: #f8fafc;
+    }
+    .coord-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .coord-table .empty-row td {
+        padding: 48px 16px;
+        color: #94a3b8;
+        font-size: 14px;
+        text-align: center;
+        background: #F5F7FC;
+        border-bottom: none;
+    }
+
+    .badge-coord {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+    }
+    .badge-soumis {
+        background: rgba(255, 193, 7, 0.12);
+        color: #b8860b;
+        border: 1px solid rgba(255, 193, 7, 0.2);
+    }
+    .badge-evalue {
+        background: rgba(16, 185, 129, 0.12);
+        color: #047857;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .badge-assigned {
+        background: rgba(11, 22, 44, 0.08);
+        color: #0B162C;
+        border: 1px solid rgba(11, 22, 44, 0.12);
+    }
+
+    .btn-coord {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        border: none;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
+        letter-spacing: 0.2px;
+    }
+    .btn-coord-primary {
+        background: linear-gradient(135deg, #0B162C, #043775);
+        color: white;
+        box-shadow: 0 4px 16px rgba(11, 22, 44, 0.2);
+    }
+    .btn-coord-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(11, 22, 44, 0.3);
+    }
+    .btn-coord-warning {
+        background: rgba(255, 193, 7, 0.12);
+        color: #b8860b;
+        border: 1px solid rgba(255, 193, 7, 0.25);
+    }
+    .btn-coord-warning:hover {
+        background: rgba(255, 193, 7, 0.2);
+        transform: translateY(-1px);
+    }
+    .btn-coord-secondary {
+        background: rgba(255, 255, 255, 0.8);
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+    .btn-coord-secondary:hover {
+        background: #f1f4f9;
+        transform: translateY(-1px);
+    }
+    .btn-coord-success {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        box-shadow: 0 4px 16px rgba(5, 150, 105, 0.25);
+    }
+    .btn-coord-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(5, 150, 105, 0.35);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.4;
+    }
+    .empty-state h4 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        color: #64748b;
+    }
+    .empty-state p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    /* ============================================
+       WIZARD EVALUATION - STYLE SIMPLE & MODERNE
+       Inspiré de la page Enseignant
+       ============================================ */
+
+    /* --- Overlay --- */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 22, 44, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-overlay.active { display: flex; }
+
+    /* --- Modal Content --- */
+    .modal-content {
+        background: #f8fafc;
+        border-radius: 16px;
+        width: 95%;
+        max-width: 1400px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.05);
+        border: none;
+    }
+    .modal-content::-webkit-scrollbar {
+        width: 6px;
+    }
+    .modal-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .modal-content::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    .modal-content::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* --- Header --- */
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 32px;
+        background: linear-gradient(135deg, #0B162C 0%, #043775 60%, #6366f1 100%);
+        border-radius: 16px 16px 0 0;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .modal-header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: 0.3px;
+    }
+
+    /* --- Toutes les icônes du modal en indigo (même couleur que bouton Suivant) --- */
+    .wizard-body i:not([style*="color"]),
+    .step-title i,
+    .eval-section h5 i,
+    .info-header i,
+    .annexes-header i,
+    .page-garde-title i { color: #6366f1; }
+
+    /* --- Icônes PDF en rouge --- */
+    .annexe-icon i,
+    .page-garde-link i { color: #dc3545; }
+    .modal-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        background: rgba(255,255,255,0.15);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .close-modal {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255,255,255,0.15);
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 20px;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        line-height: 1;
+    }
+    .close-modal:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    /* --- Step Progress --- */
+    .step-progress {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        padding: 28px 32px 24px;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .step-dot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .step-dot-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 800;
+        background: #f1f5f9;
+        color: #94a3b8;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    .step-dot.active .step-dot-circle {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+    .step-dot.completed .step-dot-circle {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+    .step-dot-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: color 0.3s;
+    }
+    .step-dot.active .step-dot-label {
+        color: #6366f1;
+    }
+    .step-dot.completed .step-dot-label { color: #10b981; }
+    .step-line {
+        width: 100px;
+        height: 3px;
+        background: #e2e8f0;
+        margin: 0 12px;
+        margin-bottom: 28px;
+        border-radius: 2px;
+        transition: background 0.3s;
+    }
+    .step-line.completed { background: #10b981; }
+    .step-line.active { background: linear-gradient(90deg, #10b981, #e2e8f0); }
+
+    /* --- Wizard Body --- */
+    .wizard-body {
+        padding: 32px;
+        background: transparent;
+        min-height: 400px;
+    }
+
+    /* --- Step Title --- */
+    .step-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #1e293b;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 14px 24px;
+        margin: 24px 0 20px 0;
+        background: linear-gradient(135deg, #f1f5f9, #f8fafc);
+        border-bottom: 1px solid #e2e8f0;
+        border-left: 4px solid #6366f1;
+        border-radius: 0 8px 8px 0;
+    }
+    .step-title i {
+        color: #6366f1;
+        font-size: 1.1em;
+    }
+    .step-title .badge {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 700;
+        color: #dc2626;
+        background: #F5F7FC;
+        border: 1px solid #fca5a5;
+        border-radius: 20px;
+        padding: 4px 12px;
+    }
+
+    /* --- Eval Sections --- */
+    .wizard-step .eval-section {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .wizard-step .eval-section h5 {
+        margin: 0;
+        padding: 12px 24px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1e293b;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        background: linear-gradient(135deg, #f1f5f9, #f8fafc);
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .wizard-step .eval-section h5 i {
+        color: #6366f1;
+        font-size: 2.5em;
+    }
+    .wizard-step .eval-section h5 .badge {
+        font-size: 10px;
+        padding: 2px 10px;
+        border-radius: 20px;
+        letter-spacing: 0.3px;
+        font-weight: 700;
+    }
+    .wizard-step .eval-section h5 .badge.bg-info {
+        background: #F5F7FC !important;
+        color: #6366f1 !important;
+        border: 1px solid #c7d2fe;
+    }
+    .wizard-step .eval-section h5 .badge.ms-auto {
+        background: #F5F7FC !important;
+        color: #dc2626 !important;
+        border: 1px solid #fca5a5;
+    }
+    .wizard-step .eval-section h5 {
+        margin: 0;
+        padding: 16px 20px;
+        font-size: 14px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        letter-spacing: 0.3px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .wizard-step .eval-section h5 i {
+        font-size: 15px;
+        color: #6366f1;
+        flex-shrink: 0;
+    }
+    .wizard-step .eval-section h5 .badge {
+        font-size: 11px;
+        padding: 5px 14px;
+        border-radius: 8px;
+        letter-spacing: 0.3px;
+        font-weight: 700;
+    }
+    .wizard-step .eval-section h5 .badge.bg-info {
+        background: #6366f1 !important;
+        color: white;
+    }
+    .wizard-step .eval-section h5 .badge.ms-auto {
+        background: white !important;
+        color: #dc3545 !important;
+        border: 1px solid rgba(220,53,69,0.3);
+        font-size: 12px;
+        padding: 6px 16px;
+    }
+
+    /* --- Eval Inputs --- */
+    .wizard-step .eval-inputs {
+        padding: 16px 20px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+    .wizard-step .eval-inputs .form-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 6px;
+    }
+    .wizard-step .eval-inputs .form-control,
+    .wizard-step .eval-inputs input[type="number"] {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: #212529;
+        background: white;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .wizard-step .eval-inputs .form-control:focus,
+    .wizard-step .eval-inputs input[type="number"]:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+    .wizard-step .eval-inputs .input-group-text {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 12px;
+        padding: 8px 12px;
+        border-radius: 8px;
+    }
+    .wizard-step .eval-inputs textarea.form-control {
+        min-height: 60px;
+        resize: vertical;
+    }
+    .note-error {
+        font-size: 11px;
+        color: #dc3545;
+        margin-top: 4px;
+    }
+
+    /* --- Score Summary --- */
+    .score-summary {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    .score-summary h6 {
+        font-size: 11px;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 8px 0;
+    }
+    .score-summary #totalAE,
+    .score-summary #totalAR {
+        font-size: 26px;
+        font-weight: 800;
+        color: #0B162C;
+        letter-spacing: -0.5px;
+    }
+    .score-summary small {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 4px;
+        display: block;
+    }
+
+    /* --- Wizard Footer --- */
+    .wizard-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 32px;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        border-radius: 0 0 16px 16px;
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+    }
+    .step-info {
+        font-size: 13px;
+        font-weight: 600;
+        color: #64748b;
+    }
+    .wizard-footer-right {
+        display: flex;
+        gap: 12px;
+    }
+
+    /* --- Buttons --- */
+    .btn-coord-secondary {
+        background: white;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .btn-coord-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+    .btn-wizard-next {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+    }
+    .btn-wizard-next:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+    .btn-coord-success {
+        background: #10b981;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    }
+    .btn-coord-success:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
+
+    /* --- Info Card --- */
+    .info-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .info-header {
+        padding: 12px 24px;
+        font-size: 13px;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, #0B162C, #043775);
+        letter-spacing: 0.3px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .info-body { padding: 20px; }
+    .info-body p {
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: #212529;
+        line-height: 1.5;
+    }
+    .info-body strong { color: #0B162C; }
+
+    /* --- Responsive --- */
+    @media (max-width: 1400px) {
+        .coord-table th, .coord-table td { padding: 12px 14px; font-size: 12px; }
+    }
+    @media (max-width: 1200px) {
+        .coord-table th, .coord-table td { padding: 10px 12px; font-size: 11px; }
+        .wizard-body { padding: 24px; }
+    }
+    @media (max-width: 992px) {
+        .banner-primary h1 { font-size: 20px; }
+        .coord-table th:nth-child(4), .coord-table td:nth-child(4),
+        .coord-table th:nth-child(5), .coord-table td:nth-child(5) { display: none; }
+        .step-line { width: 50px; }
+    }
+    @media (max-width: 768px) {
+        .banner-primary h1 { font-size: 16px; }
+        .banner-primary { padding: 20px; margin-bottom: 16px; }
+        .content-wrapper > div:first-child { flex-direction: column; gap: 10px; align-items: flex-start; }
+        .content-wrapper .table-responsive { margin: 0; border-radius: 8px; }
+        .coord-table th, .coord-table td { padding: 8px 10px; font-size: 11px; }
+        .coord-table th:nth-child(3), .coord-table td:nth-child(3) { display: none; }
+        .wizard-body { padding: 16px; }
+        .step-progress { padding: 12px; gap: 0; }
+        .step-line { width: 30px; margin: 0 4px; margin-bottom: 20px; }
+        .step-dot-circle { width: 36px; height: 36px; font-size: 12px; }
+        .step-dot-label { font-size: 9px; }
+        .wizard-footer { padding: 12px 16px; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .modal-overlay { padding: 10px; }
+        .modal-content { width: 100%; max-width: 100%; max-height: 95vh; border-radius: 12px; }
+        .modal-header { padding: 14px 16px; }
+        .modal-header h3 { font-size: 16px; }
+        .step-title { font-size: 12px; padding: 10px 16px; margin: 16px 0 12px 0; }
+        .eval-section h5 { font-size: 11px; padding: 10px 14px; }
+        .eval-section h5 i { font-size: 1.8em; }
+        .info-body { padding: 12px; }
+        .info-body p { font-size: 12px; }
+        .annexes-body { padding: 12px; flex-direction: column; }
+        .annexe-link { min-width: 100%; }
+    }
+    @media (max-width: 576px) {
+        .banner-primary h1 { font-size: 14px; }
+        .banner-primary p { font-size: 12px; }
+        .coord-table th:nth-child(6), .coord-table td:nth-child(6) { display: none; }
+        .btn-coord { padding: 6px 12px; font-size: 11px; }
+        .step-title { font-size: 12px; padding: 10px 16px; }
+        .eval-section h5 { font-size: 11px; padding: 10px 14px; }
+        .tbl-futur thead th, .tbl-futur tbody td { padding: 6px 8px; font-size: 10px; }
+    }
+    @media (max-width: 400px) {
+        .coord-table th:nth-child(1), .coord-table td:nth-child(1) { display: none; }
+        .step-dot-label { display: none; }
+        .step-line { width: 20px; }
+        .modal-content { border-radius: 8px; }
+        .modal-header h3 { font-size: 14px; }
+        .wizard-body { padding: 12px; }
+        .eval-inputs .row { flex-direction: column; }
+    }
+
+    /* --- Annexes Card --- */
+    .annexes-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .annexes-header {
+        padding: 14px 24px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1e293b;
+        background: transparent;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .annexes-header i {
+        color: #3b82f6;
+    }
+    .annexes-body {
+        padding: 16px 20px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .annexe-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.2s;
+        flex: 1;
+        min-width: 180px;
+    }
+    .annexe-link:hover {
+        border-color: #c7d2fe;
+        background: #f0f0ff;
+    }
+    .annexe-icon i {
+        font-size: 22px;
+        color: #dc3545;
+    }
+    .annexe-info { flex: 1; }
+    .annexe-title {
+        display: block;
+        font-weight: 700;
+        font-size: 13px;
+        color: #1e293b;
+    }
+    .annexe-subtitle {
+        display: block;
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+
+
+    /* --- Page Garde --- */
+    .page-garde-section {
+        padding: 12px 20px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+    .page-garde-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .page-garde-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .page-garde-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12px;
+        color: #1e293b;
+        transition: all 0.2s;
+    }
+    .page-garde-link:hover {
+        border-color: #c7d2fe;
+        background: #f0f0ff;
+    }
+    .page-garde-link i {
+        color: #dc3545;
+        font-size: 14px;
+    }
+    .page-garde-empty {
+        font-size: 12px;
+        color: #94a3b8;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+    }
+
+    /* --- Empty State --- */
+    .wizard-step .text-muted.fst-italic {
+        padding: 8px 20px;
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    /* --- File Links --- */
+    .file-link {
+        color: #dc3545;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 12px;
+    }
+    .file-link:hover { text-decoration: underline; }
+
+    /* --- Sub Label (comme consulter_dossier) --- */
+    .sub-tbl-wrap { margin-bottom: 10px; }
+    .sub-tbl-wrap:last-child { margin-bottom: 0; }
+    .sub-lbl {
+        font-size: 12px;
+        font-weight: 700;
+        color: #475569;
+        padding: 8px 0 6px 16px;
+        margin-bottom: 4px;
+        border-left: 3px solid #6366f1;
+        background: #f8fafc;
+        border-radius: 0 8px 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sub-lbl.ar-lbl { border-left-color: #0d9488; }
+
+    /* --- Table wrapper (comme consulter_dossier) --- */
+    .tbl-wrap {
+        overflow-x: auto;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 8px;
+        background: #fff;
+    }
+    .tbl-futur {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+    .tbl-futur thead th {
+        padding: 11px 16px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #475569;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+        text-align: center;
+    }
+    .tbl-futur tbody td {
+        padding: 11px 16px;
+        font-size: 12px;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        text-align: center;
+    }
+    .tbl-futur tbody tr:nth-child(even) td { background: #f8fafc; }
+    .tbl-futur tbody tr:nth-child(odd) td { background: #fff; }
+    .tbl-futur tbody tr:hover td { background: #f0f4ff; }
+    .tbl-futur tbody tr:last-child td { border-bottom: none; }
+</style>
+{% endblock %}
+
+{% set dossiers_soumis = dossiers | selectattr('statut', 'equalto', 'soumis') | list %}
+{% set dossiers_evalues = dossiers | selectattr('statut', 'equalto', 'évalué') | list %}
+
+{% set show_evalues = request.args.get('tab') == 'evalues' %}
+
+{% block content %}
+<div class="banner-primary">
+    <h1>ÉVALUATION DES DOSSIERS {{ annee }}</h1>
+    <p>Commission Scientifique</p>
+</div>
+
+{% if show_evalues %}
+<div class="content-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0;"><i class="fas fa-check-circle me-2" style="color: #000;"></i>Dossiers Évalués</h2>
+        <span class="badge-coord badge-evalue"><i class="far fa-file-alt"></i> Total : {{ dossiers_evalues|length }} dossier(s)</span>
+    </div>
+
+    {% if dossiers_evalues %}
+    <div class="table-responsive">
+        <table class="coord-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Enseignant</th>
+                    <th>Grade</th>
+                    <th>Département</th>
+                    <th>Évalué le</th>
+                    <th>Statut</th>
+                    <th>Document d'évaluation</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dossier in dossiers_evalues %}
+                <tr>
+                    <td><strong>{{ dossier.id }}</strong></td>
+                    <td>
+                        <strong>{{ dossier.nom }} {{ dossier.prenom }}</strong><br>
+                        <small style="color: #94a3b8; font-size: 12px;">
+                            Né(e) le {{ dossier.date_naissance.strftime('%d/%m/%Y') if dossier.date_naissance else '—' }}
+                        </small>
+                    </td>
+                    <td><span style="font-weight: 600; color: #0B162C;">{{ dossier.grade or '—' }}</span></td>
+                    <td>{{ dossier.departement or '—' }}</td>
+                    <td>
+                        {% if dossier.date_evaluation %}
+                        {{ dossier.date_evaluation.strftime('%d/%m/%Y') }}
+                        {% else %}
+                        <span style="color: #94a3b8;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge-coord badge-evalue"><i class="fas fa-check"></i> Évalué</span>
+                    </td>
+                    <td>
+                        {% if dossier.pdf_evaluation %}
+                        <a class="btn-coord btn-coord-secondary" href="/api/download-evaluation-pdf/{{ dossier.id }}" target="_blank" style="font-size: 11px; padding: 6px 12px;">
+                            <i class="fas fa-file-pdf"></i> Télécharger
+                        </a>
+                        {% else %}
+                        <span style="color: #94a3b8; font-size: 11px;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="btn-coord btn-coord-primary" onclick="openDossierModal({{ dossier.id }}, 'évalué')">
+                            <i class="fas fa-eye"></i> Consulter
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-file-pdf"></i>
+        <h4>Aucun dossier évalué</h4>
+        <p>Vous n'avez pas encore évalué de dossier.</p>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="content-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0;"><i class="fas fa-tasks me-2" style="color: #000;"></i>Mes Dossiers à Évaluer</h2>
+        <span class="badge-coord badge-assigned"><i class="far fa-file-alt"></i> Total : {{ dossiers_soumis|length }} dossier(s)</span>
+    </div>
+
+    {% if dossiers_soumis %}
+    <div class="table-responsive">
+        <table class="coord-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Enseignant</th>
+                    <th>Grade</th>
+                    <th>Département</th>
+                    <th>Dépôt</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dossier in dossiers_soumis %}
+                <tr>
+                    <td><strong>{{ dossier.id }}</strong></td>
+                    <td>
+                        <strong>{{ dossier.nom }} {{ dossier.prenom }}</strong><br>
+                        <small style="color: #94a3b8; font-size: 12px;">
+                            Né(e) le {{ dossier.date_naissance.strftime('%d/%m/%Y') if dossier.date_naissance else '—' }}
+                        </small>
+                    </td>
+                    <td><span style="font-weight: 600; color: #0B162C;">{{ dossier.grade or '—' }}</span></td>
+                    <td>{{ dossier.departement or '—' }}</td>
+                    <td>
+                        {% if dossier.date_soumission %}
+                        {{ dossier.date_soumission.strftime('%d/%m/%Y') }}
+                        {% else %}
+                        <span style="color: #94a3b8;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge-coord badge-soumis"><i class="fas fa-clock"></i> Soumis</span>
+                    </td>
+                    <td>
+                        <button class="btn-coord btn-coord-primary" onclick="openDossierModal({{ dossier.id }}, 'soumis')">
+                            <i class="fas fa-edit"></i> Évaluer
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h4>Aucun dossier à évaluer</h4>
+        <p>Vous n'avez aucun dossier en attente d'évaluation.</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- MODAL UNIQUE -->
+<div class="modal-overlay" id="dossierModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Détails du dossier</h3>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+        </div>
+        <div id="modalBody">
+            <!-- Contenu chargé dynamiquement -->
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/Script_Commission.js') }}?v=20260724-07"></script>
+{% endblock %}

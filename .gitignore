@@ -1,0 +1,71 @@
+# Variables d'environnement (SENSIBLE - Ne jamais commit !)
+.env
+.env.local
+.env.*.local
+.env.prod
+
+# Certificats SSL (SENSIBLE - Ne jamais commit !)
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+nginx/ssl/live/
+nginx/ssl/archive/
+nginx/ssl/renewal/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environnement virtuel
+myvenv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Fichiers uploadés (peut contenir des données sensibles)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Base de données locale (si applicable)
+*.db
+*.sqlite
+*.sqlite3
+
+# Fichiers temporaires
+*.tmp
+*.temp
+
+# Agent
+.agent/
+
+# Cahier de charge (travail local — ne jamais tracker)
+cahier_de_charge.pdf
+cahier-de-charge.pdf
+
+/net-commander

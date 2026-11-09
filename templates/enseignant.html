@@ -1,0 +1,1091 @@
+{% extends "base.html" %}
+{% block title %}Dossier de Promotion - Enseignant{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/Style_enseignant.css') }}">
+{% endblock %}
+
+{% block content %}
+{% macro commission_comment(key, statut, commentaires) %}
+{% if statut == 'évalué' %}
+<div class="commission-comment">
+    <div class="commission-comment-label"><i class="fas fa-comment-dots"></i> Commentaire de la commission</div>
+    <p class="{% if commentaires and commentaires.get(key) %}has-comment{% endif %}">{{ commentaires.get(key) if commentaires and commentaires.get(key) else 'Aucun commentaire.' }}</p>
+</div>
+{% endif %}
+{% endmacro %}
+<!-- Indicateur de sauvegarde -->
+<div class="save-indicator" id="saveIndicator">
+    <i class="fas fa-check-circle"></i> Enregistré avec succès
+</div>
+
+<!-- Bannière principale -->
+<div class="banner-primary">
+    <div class="banner-glow"></div>
+    <h1>AVANCEMENT DES ENSEIGNANTS-CHERCHEURS AU TITRE DE L'ANNÉE {{ annee }}</h1>
+    <p>Pour déposer votre dossier, veuillez remplir le formulaire ci-dessous.</p>
+</div>
+
+<!-- Bouton de création de dossier - Conditionnel selon l'état -->
+{% if not dossier_exists %}
+<button class="btn-create-dossier" onclick="createDossier()">
+    <i class="fas fa-folder-plus"></i> Créer un dossier
+</button>
+{% else %}
+{% if readonly_mode %}
+<!-- Bannière d'information mode lecture seule -->
+<div style="display:flex; align-items:center; gap:12px; background-color:#DDDDDD; color:#5A5A5A; padding:10px 15px; border-radius:6px; margin-bottom:20px; border-left:4px solid #A2A2A2;">
+    <button class="btn-create-dossier" onclick="toggleForm()" style="margin:0; white-space:nowrap; flex-shrink:0;">
+        <i class="fas fa-eye"></i> Consulter mon dossier
+    </button>
+    <div style="flex:1; border-left:2px solid #A2A2A2; padding-left:12px;">
+        <i class="fas fa-info-circle"></i>
+        <strong>Dossier soumis:</strong> Votre dossier a été soumis (statut: <strong>{{ dossier_statut|title }}</strong>).
+        Vous pouvez consulter les informations ci-dessous.
+        {% if dossier_statut == 'évalué' %}
+        <div style="margin-top:8px;">Note générale : <strong>{{ note_generale if note_generale is not none else '—' }}</strong> / 100</div>
+        {% endif %}
+    </div>
+</div>
+{% elif dossier_statut == 'brouillon' %}
+<div class="alert alert-info"
+    style="background-color: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #0c5460;">
+    <i class="fas fa-info-circle"></i>
+    <strong>Dossier en cours:</strong> Vous avez un dossier en cours de rédaction. Vous pouvez continuer à le remplir
+    ci-dessous.
+</div>
+<button class="btn-create-dossier" onclick="toggleForm()">
+    <i class="fas fa-edit"></i> Continuer mon dossier
+</button>
+{% endif %}
+{% endif %}
+
+
+<!-- Formulaire Enseignant -->
+<div class="form-container" id="formContainer">
+    {% if not readonly_mode %}
+    <div class="step-reminder" id="stepReminder" style="display: none; background-color: #FDE8E8; color: #B71C1C; padding: 14px 18px; border-radius: 8px; margin-bottom: 18px; border-left: 5px solid #E76262; font-size: 1rem; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(231,98,98,0.2);">
+        <i class="fas fa-exclamation-triangle" style="font-size: 1.3rem; color: #E76262;"></i>
+        <span style="line-height: 1.5;"><strong style="color: #C62828;">⚠ Important :</strong> N'oubliez pas de cliquer sur <strong style="background: #E76262; color: #fff; padding: 2px 10px; border-radius: 4px; font-size: 0.9rem;">Enregistrer</strong> à chaque étape pour sauvegarder vos données. <span style="color: #B71C1C; font-weight: 600;">Votre progression sera perdue si vous quittez sans enregistrer.</span></span>
+        <button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #E76262; margin-left: auto; padding: 0 6px; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">&times;</button>
+    </div>
+    {% endif %}
+    <h2>Formulaire Enseignant</h2>
+    <!-- Stepper -->
+    <div class="stepper">
+        <div class="step-wrapper">
+            <div class="step active" id="step-1">1</div>
+            <span class="step-label">Informations personnelles</span>
+        </div>
+        <div class="line" id="line-1"></div>
+        <div class="step-wrapper">
+            <div class="step" id="step-2">2</div>
+            <span class="step-label">AE - Activités d'Enseignement</span>
+        </div>
+        <div class="line" id="line-2"></div>
+        <div class="step-wrapper">
+            <div class="step" id="step-3">3</div>
+            <span class="step-label">AR - Activités de Recherche</span>
+        </div>
+    </div>
+
+    <!-- Étape 1: Informations personnelles -->
+    <div class="step-content active" id="content-1">
+        <div class="step-title"><i class="fas fa-user-circle"></i> Informations personnelles</div>
+        <div class="info-section">
+            <h5><i class="fas fa-id-card"></i> Coordonnées et informations générales</h5>
+            <div class="info-body">
+        <div class="form-grid">
+             <div class="form-group">
+                 <label>Photo récente <span style="color: #000;">*</span> :</label>
+                 <div id="photoError" class="error-message" style="display: none; color: red; font-size: 0.9rem; margin-bottom: 8px;"></div>
+                 <div class="file-upload-group">
+                     <button class="file-upload-btn" onclick="document.getElementById('photo').click()">Choisir un
+                         fichier</button>
+                     <span class="file-upload-text" id="photoFileName">Aucun fichier choisi</span>
+                  <input type="file" class="form-control" style="display: none;" accept="image/*" name="photo"
+                          id="photo" onchange="validatePhoto(this)">
+                 </div>
+                 <div id="currentPhotoContainer" style="margin-top: 5px; display: none;">
+                     <a id="currentPhotoLink" href="#" target="_blank" class="file-link">Voir la photo actuelle</a>
+                 </div>
+             </div>
+              <div class="form-group">
+                  <label>Nom :</label>
+                  <input type="text" class="form-control field-readonly" name="nom" id="nom" value="{{ enseignant.nom }}" readonly
+                      style="background:#f1f4f9;color:#475569;cursor:not-allowed;">
+                  <div id="nomError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+              </div>
+              <div class="form-group">
+                  <label>Prénom :</label>
+                  <input type="text" class="form-control field-readonly" name="prenom" id="prenom" value="{{ enseignant.prenom }}"
+                      readonly style="background:#f1f4f9;color:#475569;cursor:not-allowed;">
+                  <div id="prenomError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+              </div>
+              <div class="form-group">
+                  <label>Email <span style="color: #000;">*</span> :</label>
+                  <input type="email" class="form-control field-readonly" name="email" id="email" value="{{ enseignant.email }}" readonly
+                      style="background:#f1f4f9;color:#475569;cursor:not-allowed;">
+                  <div id="emailError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+              </div>
+             <div class="form-group">
+                 <label for="grade" class="form-label">Grade <span style="color: #000;">*</span> :</label>
+                  <select id="grade" name="grade" class="form-control">
+                      <option value="">Sélectionner...</option>
+                      <option value="MC A" {{ 'selected' if enseignant.grade == 'MC A' }}>Maître de Conférences A</option>
+                      <option value="MC B" {{ 'selected' if enseignant.grade == 'MC B' }}>Maître de Conférences B</option>
+                      <option value="MC C" {{ 'selected' if enseignant.grade == 'MC C' }}>Maître de Conférences C</option>
+                      <option value="MCH A" {{ 'selected' if enseignant.grade == 'MCH A' }}>Maître de Conférences Habilité A</option>
+                      <option value="MCH B" {{ 'selected' if enseignant.grade == 'MCH B' }}>Maître de Conférences Habilité B</option>
+                      <option value="MCH C" {{ 'selected' if enseignant.grade == 'MCH C' }}>Maître de Conférences Habilité C</option>
+                      <option value="PES A" {{ 'selected' if enseignant.grade == 'PES A' }}>Professeur d'Enseignement Supérieur A</option>
+                      <option value="PES B" {{ 'selected' if enseignant.grade == 'PES B' }}>Professeur d'Enseignement Supérieur B</option>
+                      <option value="PES C" {{ 'selected' if enseignant.grade == 'PES C' }}>Professeur d'Enseignement Supérieur C</option>
+                      <option value="PES D" {{ 'selected' if enseignant.grade == 'PES D' }}>Professeur d'Enseignement Supérieur D</option>
+                  </select>
+                  <div id="gradeError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+             </div>
+             <div class="form-group">
+                 <label>Établissement <span style="color: #000;">*</span> :</label>
+                  <select class="form-control field-readonly" name="etablissement" id="etablissement" style="pointer-events:none;opacity:.65;background:#f1f4f9;">
+                      <option value="">Sélectionner...</option>
+                      <option value="Faculté des Sciences Aïn Chock" {{ 'selected' if not enseignant.etablissement or enseignant.etablissement == 'Faculté des Sciences Aïn Chock' }}>Faculté des Sciences Aïn Chock</option>
+                  </select>
+                  <div id="etablissementError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+             </div>
+             <div class="form-group">
+                 <label for="departement" class="form-label allow-numbers">Département <span style="color: #000;">*</span> :</label>
+                  <select id="departement" name="departement" class="form-control">
+                      <option value="">Sélectionner...</option>
+                      <option value="biologie">Biologie</option>
+                      <option value="geologie">Géologie</option>
+                      <option value="physique">Physique</option>
+                      <option value="chimie">Chimie</option>
+                      <option value="mathematique-informatique">Mathématiques et Informatique</option>
+                  </select>
+                  <div id="departementError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+             </div>
+             <div class="form-group">
+                 <label class="form-label">Période d'avancement considérée <span style="color: #000;">*</span> :</label>
+                 {% if enseignant and enseignant.date_debut_avancement and enseignant.date_fin_avancement %}
+                 <div style="padding:10px 14px;border-radius:8px;background:#f1f4f9;color:#475569;border:1px solid #e2e8f0;font-size:14px;display:flex;align-items:center;gap:10px;cursor:not-allowed;">
+                     <i class="fas fa-calendar-alt" style="color:#64748b;"></i>
+                     <span>du <strong>{{ enseignant.date_debut_avancement.strftime('%d/%m/%Y') }}</strong> au <strong>{{ enseignant.date_fin_avancement.strftime('%d/%m/%Y') }}</strong></span>
+                 </div>
+                 {% else %}
+                 <div style="padding:10px 14px;border-radius:8px;background:#f1f4f9;color:#94a3b8;border:1px solid #e2e8f0;font-size:14px;">
+                     <i class="fas fa-clock"></i> Non définie (contactez l'administration)
+                 </div>
+                 {% endif %}
+             </div>
+              <div class="form-group">
+                   <label>Date de naissance <span style="color: #000;">*</span> :</label>
+                   <input type="date" class="form-control" name="date_naissance" id="date_naissance" required>
+                   <div id="date_naissanceError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+              </div>
+              <div class="form-group">
+                  <label>Lieu de naissance <span style="color: #000;">*</span> :</label>
+                   <input type="text" class="form-control" name="lieu_naissance" id="lieu_naissance">
+                   <div id="lieu_naissanceError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+              </div>
+              <div class="form-group">
+                   <label>Date de recrutement <span style="color: #000;">*</span> :</label>
+                   <input type="date" class="form-control" name="date_recrutement" id="date_recrutement" required>
+                   <div id="date_recrutementError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+              </div>
+             <div class="form-group">
+                 <label>PPR <span style="color: #000;">*</span> :</label>
+                  <input type="text" class="form-control" name="ppr" id="ppr"
+                      value="{{ enseignant.ppr or '' }}">
+                  <div id="pprError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+             </div>
+            <div class="form-group">
+                <label for="laboratoire" class="form-label">Laboratoire <span style="color: #000;">*</span> :</label>
+                  <select id="laboratoire" name="laboratoire" class="form-control allow-numbers">
+                      <option value="">Sélectionner...</option>
+                      <optgroup label="Biologie">
+                          <option value="Laboratory of Integrative Biology">Laboratory of Integrative Biology</option>
+                          <option value="Laboratoire Santé, Environnement et Biotechnologie">Laboratoire Santé, Environnement et Biotechnologie</option>
+                      </optgroup>
+                      <optgroup label="Chimie">
+                          <option value="Laboratoire Chimie Organique, Matériaux, Electrochimie et Environnement">Laboratoire Chimie Organique, Matériaux, Electrochimie et Environnement</option>
+                          <option value="Laboratoire Génie des Matériaux, des Procédés et de l'Environnement">Laboratoire Génie des Matériaux, des Procédés et de l'Environnement</option>
+                      </optgroup>
+                      <optgroup label="Géologie">
+                          <option value="Laboratoire Géosciences, Géomatique, Planétologie et Environnement">Laboratoire Géosciences, Géomatique, Planétologie et Environnement</option>
+                      </optgroup>
+                      <optgroup label="Physique">
+                          <option value="Laboratoire de Mécanique et Physique des Hautes Energies">Laboratoire de Mécanique et Physique des Hautes Energies</option>
+                          <option value="Laboratoire Génie Electrique, Industriel, Traitement de l'Information, Informatique, Logistique – Energies Renouvelables et Dynamique des Systèmes">Laboratoire Génie Electrique, Industriel, Traitement de l'Information, Informatique, Logistique – Energies Renouvelables et Dynamique des Systèmes</option>
+                          <option value="Laboratoire de Physique des Matériaux Avancés et Thermique">Laboratoire de Physique des Matériaux Avancés et Thermique</option>
+                      </optgroup>
+                      <optgroup label="Mathématiques &amp; Informatique">
+                          <option value="Laboratoire d'Analyse Mathématique, Algèbre et Applications">Laboratoire d'Analyse Mathématique, Algèbre et Applications</option>
+                          <option value="Laboratoire d'Informatique et des Systèmes">Laboratoire d'Informatique et des Systèmes</option>
+                          <option value="Laboratoire d'Ingénierie des Données et Systèmes Intelligents">Laboratoire d'Ingénierie des Données et Systèmes Intelligents</option>
+                      </optgroup>
+</select>
+                  <div id="laboratoireError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+             </div>
+              <div class="form-group">
+                   <label>Équipe de recherche <span style="color: #000;">*</span> :</label>
+                   <select class="form-control" name="equipe_recherche" id="equipe_recherche">
+                       <option value="">Sélectionner d'abord un laboratoire</option>
+                   </select>
+                   <div id="equipe_rechercheError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+              </div>
+              <div class="form-group">
+                  <label>Adresse personnelle <span style="color: #000;">*</span> :</label>
+                  <input type="text" class="form-control" name="adresse_personnelle" id="adresse_personnelle">
+                  <div id="adresse_personnelleError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+              </div>
+              <div class="form-group">
+                  <label>Téléphone <span style="color: #000;">*</span> :</label>
+                  <input type="tel" class="form-control" name="telephone" id="telephone"
+                      value="{{ enseignant.telephone or '' }}">
+                  <div id="telephoneError" class="error-message" style="display: none; color: red; font-size: 0.8rem; margin-top: 2px;"></div>
+              </div>
+
+        </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Étape 2: AE - Activités d'Enseignement -->
+    <div class="step-content" id="content-2">
+        {% if enseignant and enseignant.date_debut_avancement and enseignant.date_fin_avancement %}
+        <div style="margin:0 0 20px;padding:14px 20px;border-radius:10px;background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;display:flex;align-items:center;justify-content:center;gap:12px;font-size:14px;border:1px solid #7dd3fc;text-align:center;">
+            <i class="fas fa-calendar-alt" style="font-size:18px;color:#0284c7;"></i>
+            <span><strong>Période d'avancement :</strong> du {{ enseignant.date_debut_avancement.strftime('%d/%m/%Y') }} au {{ enseignant.date_fin_avancement.strftime('%d/%m/%Y') }}</span>
+        </div>
+        {% endif %}
+        <div class="step-title"><i class="fas fa-book-open"></i> AE - Activités d'Enseignement</div>
+        <div class="subsection-title"><i class="fas fa-book"></i> AE1 - Production pédagogique</div>
+        <!-- AE1-1 : Publications d'ouvrages d'enseignement (ISSN ou ISBN) -->
+        <div class="eval-section">
+            <h5><i class="fas fa-file-alt"></i> <span>AE1-1 : Publications d'ouvrages d'enseignement (ISSN ou ISBN)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae1-1">
+                    <thead>
+                        <tr>
+                            <th>Titres</th>
+                            <th>Auteurs</th>
+                            <th>Niveaux</th>
+                            <th>Éditeurs</th>
+                            <th>Années d'édition</th>
+                            <th>N° de dépôt légal / ISSN / ISBN</th>
+                            <th>Justificatifs (lien)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae1-1')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <!--AE1-2 : Manuels ou polycopiés d'enseignement-->
+        <div class="eval-section">
+            <h5><i class="fas fa-book"></i> <span>AE1-2 : Manuels ou polycopiés d'enseignement</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae1-2">
+                    <thead>
+                        <tr>
+                            <th>Auteurs</th>
+                            <th>Départements d'attache</th>
+                            <th>Années d'élaboration</th>
+                            <th>Filières</th>
+                            <th>Semestres</th>
+                            <th>Type de polycopié</th>
+                            <th>Fichiers justificatifs (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae1-2')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <!--AE1-3 : Supports NTIC et Innovations pédagogiques (diaporamas, didacticiels, miseen place de nouveaux TPs, page web ou homepage à caractère pédagogique)-->
+        <div class="eval-section">
+            <h5><i class="fas fa-laptop-code"></i> <span>AE 1-3 Supports NTIC et Innovations pédagogiques (diaporamas, didacticiels, miseen place de nouveaux TPs, page web ou homepage à caractère pédagogique)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae1-3">
+                    <thead>
+                        <tr>
+                            <th>Objectifs</th>
+                            <th>Auteurs</th>
+                            <th>Filière</th>
+                            <th>Niveau</th>
+                            <th>Année universitaire</th>
+                            <th>Lien du site web</th>
+                            <th>Support NTIC</th>
+                            <th>Type de support</th>
+                            <th>Justificatif</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae1-3')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <!-- AE2 - Encadrement pédagogique -->
+        {{ commission_comment('ae1', dossier_statut|default(''), evaluations|default({})) }}
+        <div class="subsection-title"><i class="fas fa-chalkboard"></i> AE2 - Encadrement pédagogique</div>
+
+        <!-- AE2-1 : Encadrement de cours, TD, TP et PFE (cycle Licence) -->
+        <div class="eval-section">
+            <h5><i class="fas fa-user-graduate"></i> <span>AE2-1 : Encadrement de cours, TD, TP et PFE (cycle Licence)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae2-1">
+                    <thead>
+                        <tr>
+                            <th>Année universitaire</th>
+                            <th>Type de la Licence</th>
+                            <th>Intitulé de la Licence</th>
+                            <th>Type</th>
+                            <th>Intitulé du module</th>
+                            <th>Intitulé du PFE</th>
+                            <th>Module ou élément de module</th>
+                            <th>Département d'attache</th>
+                            <th>Co-encadrant(s)</th>
+                            <th>Type encadrante</th>
+                            <th>Copie de la page de garde cachetée</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae2-1')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE2-2 : Encadrement de cours et mémoires de fin d'étude (cycle Master) -->
+            <div class="eval-section">
+            <h5><i class="fas fa-users"></i> <span>AE 2-2 Encadrement de cours et mémoires de fin d'étude (cycle Master)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae2-2">
+                    <thead>
+                        <tr>
+                            <th>Année universitaire</th>
+                            <th>Type de Master</th>
+                            <th>Intitulé du Master</th>
+                            <th>l'intitulé du module</th>
+                            <th>Intitulé du mémoire</th>
+                            <th>Coordonnateur de Master</th>
+                            <th>Co-encadrant(s)</th>
+                            <th>Département d'attache</th>
+                            <th>Copie de la page de garde cachetée</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae2-2')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE2-3 : Encadrement d'autres activités -->
+            <div class="eval-section">
+            <h5><i class="fas fa-calendar-alt"></i> <span>AE 2-3 Encadrement d'autres activités (sorties de terrain, animation de séminaires ou formations,…)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae2-3">
+                    <thead>
+                        <tr>
+                            <th>Type de formation dispensée</th>
+                            <th>Établissement</th>
+                            <th>Date</th>
+                            <th>Lieu</th>
+                            <th>Période de l'ordre de mission</th>
+                            <th>Attestation du Décanat ou de la Présidence de l'Université</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae2-3')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE3 - Responsabilités pédagogiques et administratives -->
+        {{ commission_comment('ae2', dossier_statut|default(''), evaluations|default({})) }}
+        <div class="subsection-title"><i class="fas fa-building"></i> AE3 - Responsabilités pédagogiques et administratives</div>
+
+        <!-- AE3-1 : Chef de département ou membre de collège (ou bureau) du département -->
+        <div class="eval-section">
+            <h5><i class="fas fa-sitemap"></i> <span>AE3-1 : Chef de département ou membre de collège (ou bureau) du département</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae3-1">
+                    <thead>
+                        <tr>
+                            <th>Attestation du Décanat ou attestation du Chef de département</th>
+                            <th>Nature de la responsabilité</th>
+                            <th>Période</th>
+                            <th>Nombre de mandats</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae3-1')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE3-2 : Coordonnateur de filière -->
+        <div class="eval-section">
+            <h5><i class="fas fa-layer-group"></i> <span>AE3-2 : Coordonnateur de filière</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae3-2">
+                    <thead>
+                        <tr>
+                            <th>Attestation du Chef de département</th>
+                            <th>Intitulé de la filière</th>
+                            <th>Nombre d'accréditations</th>
+                            <th>Période</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae3-2')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE3-3 : Responsable de module -->
+        <div class="eval-section">
+            <h5><i class="fas fa-cube"></i> <span>AE3-3 : Responsable de module</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae3-3">
+                    <thead>
+                        <tr>
+                            <th>Attestation du chef de département / responsable du master</th>
+                            <th>Intitulé du module</th>
+                            <th>Filière</th>
+                            <th>Période</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae3-3')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE3-4 : Membre du conseil d'Établissement -->
+        <div class="eval-section">
+            <h5><i class="fas fa-university"></i> <span>AE3-4 : Membre du conseil d'Établissement</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae3-4">
+                    <thead>
+                        <tr>
+                            <th>Attestation du Décanat</th>
+                            <th>Période du mandat</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae3-4')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE3-5 : Membre du conseil d'Université -->
+        <div class="eval-section">
+            <h5><i class="fas fa-landmark"></i> <span>AE3-5 : Membre du conseil d'Université</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae3-5">
+                    <thead>
+                        <tr>
+                            <th>Attestation de la Présidence de l'Université</th>
+                            <th>Période du mandat</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae3-5')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE3-6 : Membre de la commission scientifique -->
+        <div class="eval-section">
+            <h5><i class="fas fa-users-cog"></i> <span>AE3-6 : Membre de la commission scientifique</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae3-6">
+                    <thead>
+                        <tr>
+                            <th>Attestation du Décanat</th>
+                            <th>Période du mandat</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae3-6')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AE3-7 : Membre de commission d'expertise ou d'évaluation pédagogique à l'échelle nationale ou internationale -->
+            <div class="eval-section">
+            <h5><i class="fas fa-clipboard-check"></i> <span>AE 3-7 Membre de commission d'expertise ou d'évaluation pédagogique à l'échelle nationale ou internationale</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ae3-7">
+                    <thead>
+                        <tr>
+                            <th>Attestation officielle</th>
+                            <th>Nature de l'activité effectuée</th>
+                            <th>Date</th>
+                            <th>Lieu</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ae3-7')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        {{ commission_comment('ae3', dossier_statut|default(''), evaluations|default({})) }}
+    </div>
+
+    <!-- Étape 5: Activités de recherche -->
+    <div class="step-content" id="content-3">
+        {% if enseignant and enseignant.date_debut_avancement and enseignant.date_fin_avancement %}
+        <div style="margin:0 0 20px;padding:14px 20px;border-radius:10px;background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;display:flex;align-items:center;justify-content:center;gap:12px;font-size:14px;border:1px solid #7dd3fc;text-align:center;">
+            <i class="fas fa-calendar-alt" style="font-size:18px;color:#0284c7;"></i>
+            <span><strong>Période d'avancement :</strong> du {{ enseignant.date_debut_avancement.strftime('%d/%m/%Y') }} au {{ enseignant.date_fin_avancement.strftime('%d/%m/%Y') }}</span>
+        </div>
+        {% endif %}
+        <div class="step-title"><i class="fas fa-flask"></i> AR - Activités de Recherche</div>
+        <div class="subsection-title"><i class="fas fa-microscope"></i> AR1 - Production scientifique</div>
+
+        <!-- AR1-1 : Publications scientifiques dans des revues spécialisées indexées (Scopus, Web of Knowledge) -->
+            <div class="eval-section">
+            <h5><i class="fas fa-scroll"></i> <span>AR 1-1 Publications scientifiques dans des revues spécialisées indexées (Scopus, Webof Knowledge)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar1-1">
+                    <thead>
+                        <tr>
+                            <th>Lien de publication</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar1-1')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR1-2 : Publications dans les actes de manifestations scientifiques avec comité de lecture -->
+            <div class="eval-section">
+            <h5><i class="fas fa-file-invoice"></i> <span>AR 1-2 Publications dans les actes de manifestations scientifiques avec comité de lecture</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar1-2">
+                    <thead>
+                        <tr>
+                            <th>Lien de publication</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar1-2')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR1-3 : Ouvrages de recherche édités (livres ou chapitres de livres) -->
+            <div class="eval-section">
+            <h5><i class="fas fa-book-open"></i> <span>AR 1-3 Ouvrages de recherche édités (livres ou chapitres de livres)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar1-3">
+                    <thead>
+                        <tr>
+                            <th>Lien de publication</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar1-3')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR1-4 : Publications scientifiques dans des revues spécialisées nationales ou internationales avec comité de lecture -->
+            <div class="eval-section">
+            <h5><i class="fas fa-newspaper"></i> <span>AR 1-4 Publications scientifiques dans des revues spécialisées nationales ou internationales avec comité de lecture</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar1-4">
+                    <thead>
+                        <tr>
+                            <th>Copie de la 1ère page de l'article</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar1-4')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR2 - Encadrement scientifique -->
+        {{ commission_comment('ar1', dossier_statut|default(''), evaluations|default({})) }}
+        <div class="subsection-title"><i class="fas fa-user-graduate"></i> AR2 - Encadrement scientifique</div>
+
+        <!-- AR2-1 : Direction ou codirection de thèses de doctorat soutenues -->
+        <div class="eval-section">
+            <h5><i class="fas fa-user-tie"></i> <span>AR2-1 : Direction ou codirection de thèses de doctorat soutenues</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar2-1">
+                    <thead>
+                        <tr>
+                            <th>Fichier justificatif (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar2-1')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR2-2 : Rapporteur et membre de jury de thèses ou d'habilitations -->
+        <div class="eval-section">
+            <h5><i class="fas fa-gavel"></i> <span>AR2-2 : Rapporteur et membre de jury de thèses ou d'habilitations</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar2-2">
+                    <thead>
+                        <tr>
+                            <th>Fichier justificatif (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar2-2')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR3 - Responsabilités scientifiques -->
+        {{ commission_comment('ar2', dossier_statut|default(''), evaluations|default({})) }}
+        <div class="subsection-title"><i class="fas fa-users-cog"></i> AR3 - Responsabilités scientifiques</div>
+
+        <!-- AR3-1 : Directeur de structure de recherche (laboratoire, pôle de compétence, centre thématique de recherche,…) -->
+            <div class="eval-section">
+            <h5><i class="fas fa-building"></i> <span>AR 3-1 Directeur de structure de recherche (laboratoire, pôle de compétence, centre thématique de recherche,…)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar3-1">
+                    <thead>
+                        <tr>
+                            <th>Fichier justificatif (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar3-1')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR3-2 : Responsable d'équipe de recherche -->
+        <div class="eval-section">
+            <h5><i class="fas fa-users-cog"></i> <span>AR3-2 : Responsable d'équipe de recherche</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar3-2">
+                    <thead>
+                        <tr>
+                            <th>Fichier justificatif (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar3-2')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR3-3 : Responsable ou participant dans des projets ou contrats de recherche financés -->
+            <div class="eval-section">
+            <h5><i class="fas fa-project-diagram"></i> <span>AR 3-3 Responsable ou participant dans des projets ou contrats de recherche financés</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar3-3">
+                    <thead>
+                        <tr>
+                            <th>Fichier justificatif (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar3-3')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR3-4 : Activités d'expertise et d'évaluation scientifique à l'échelle nationale ou internationale (CNACES, CNRST, reviewer, editorial board, editor-in-chief,…) -->
+            <div class="eval-section">
+            <h5><i class="fas fa-search"></i> <span>AR 3-4 Activités d'expertise et d'évaluation scientifique à l'échelle nationale ou internationale (CNACES, CNRST, reviewer, editorial board, editor-in-chief,…)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar3-4">
+                    <thead>
+                        <tr>
+                            <th>Fichier justificatif (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar3-4')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR4 - Ouverture et valorisation -->
+        {{ commission_comment('ar3', dossier_statut|default(''), evaluations|default({})) }}
+        <div class="subsection-title"><i class="fas fa-globe"></i> AR4 - Ouverture et valorisation</div>
+
+        <!-- AR4-1 : Animation de structures d'interaction avec le milieu socio-économique et organisation de manifestations scientifiques (séminaires, colloques, congrès, forums,…) -->
+            <div class="eval-section">
+            <h5><i class="fas fa-hands"></i> <span>AR 4-1 Animation de structures d'interaction avec le milieu socio-économique et organisation de manifestations scientifiques (séminaires, colloques, congrès, forums,…)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar4-1">
+                    <thead>
+                        <tr>
+                            <th>Fichier justificatif (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar4-1')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR4-2 : Expertise et valorisation d'actions et de travaux au profit du milieu socio-économique (organisations non gouvernementales, secteur privé, organismes internationaux, secteur public) -->
+            <div class="eval-section">
+            <h5><i class="fas fa-handshake"></i> <span>AR 4-2 Expertise et valorisation d'actions et de travaux au profit du milieu socio-économique (organisations non gouvernementales, secteur privé, organismes internationaux, secteur public)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar4-2">
+                    <thead>
+                        <tr>
+                            <th>Fichier justificatif (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar4-2')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AR4-3 : Travaux de recherche et innovations (Dépôt de brevets au profit de l'établissement, conception de prototypes, incubation de projets de recherche et de développement, prix,…) -->
+            <div class="eval-section">
+            <h5><i class="fas fa-lightbulb"></i> <span>AR 4-3 Travaux de recherche et innovations (Dépôt de brevets au profit de l'établissement, conception de prototypes, incubation de projets de recherche et de développement, prix,…)</span></h5>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="table-ar4-3">
+                    <thead>
+                        <tr>
+                            <th>Fichier justificatif (PDF)</th>
+                            <th class="th-add-button-flex">
+                                <button class="add-row-btn" onclick="openModal('ar4-3')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        {{ commission_comment('ar4', dossier_statut|default(''), evaluations|default({})) }}
+    </div>
+    <div class="form-actions">
+        <button class="btn btn-outline" id="prevBtn" onclick="changeStep(-1)" style="display: none;">
+            <i class="fas fa-arrow-left"></i> Précédent
+        </button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-secondary" onclick="saveForm()" {% if readonly_mode %}disabled
+                style="opacity: 0.5; cursor: not-allowed;" {% endif %}>
+                <i class="fas fa-save"></i> Enregistrer
+            </button>
+            <button class="btn btn-primary" id="nextBtn" onclick="changeStep(1)" disabled style="opacity: 0.5; cursor: not-allowed;">
+                Suivant <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="btn btn-success" id="submitBtn" onclick="submitForm()"
+                style="display: none;{% if readonly_mode %} opacity: 0.5; cursor: not-allowed;{% endif %}" {% if
+                readonly_mode %}disabled{% endif %}>
+                <i class="fas fa-paper-plane"></i> Soumettre
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour l'ajout et l'édition de lignes dans les tableaux -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content" id="modalContent">
+        <!-- Contenu dynamique selon le tableau -->
+    </div>
+</div>
+
+<!-- Modal de confirmation -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <div class="confirm-icon">
+            <i class="fas fa-paper-plane"></i>
+        </div>
+        <h3 class="confirm-title">Soumettre le dossier</h3>
+        <p class="confirm-message" id="confirmMessage">Êtes-vous sûr de vouloir soumettre votre dossier ? Vous ne pourrez plus le modifier après.</p>
+        <div class="confirm-actions">
+            <button class="btn btn-outline" id="confirmCancelBtn" onclick="closeConfirmModal()">Annuler</button>
+            <button class="btn btn-success" id="confirmOkBtn">Oui, soumettre</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="confirm-overlay" id="deleteConfirmOverlay">
+    <div class="confirm-box">
+        <div class="confirm-icon confirm-icon-delete">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <h3 class="confirm-title">Confirmer la suppression</h3>
+        <p class="confirm-message" id="deleteConfirmMessage">Êtes-vous sûr de vouloir supprimer cette ligne ? Cette action est irréversible.</p>
+        <div class="confirm-actions">
+            <button class="btn btn-outline" onclick="closeDeleteConfirmModal()">Annuler</button>
+            <button class="btn btn-danger-delete" id="deleteConfirmOkBtn">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de succès -->
+<div class="confirm-overlay" id="successOverlay">
+    <div class="confirm-box">
+        <div class="confirm-icon confirm-icon-success">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 class="confirm-title" id="successTitle">Succès</h3>
+        <p class="confirm-message" id="successMessage">Opération effectuée avec succès.</p>
+        <div class="confirm-actions">
+            <button class="btn btn-success" id="successOkBtn">OK</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const isReadOnly = {{ 'true' if readonly_mode else 'false' }};
+
+    const equipesParLaboratoire = {
+        "Laboratory of Integrative Biology": [
+            "Génétique moléculaire et Bioinformatique",
+            "Immunologie, Microbiologie et Parasitologie",
+            "Pharmacologie, Toxicologie et Biodiversité"
+        ],
+        "Laboratoire Santé, Environnement et Biotechnologie": [
+            "Biochimie, Biotechnologie et Immunophysiopathologie",
+            "Gestion des Bioressources, Biotechnologies et Environnement",
+            "Physiopathologie, Génétique Moléculaire et Biotechnologie"
+        ],
+        "Laboratoire Chimie Organique, Matériaux, Electrochimie et Environnement": [
+            "Chimie hétérocyclique, thérapeutique et matériaux avancés",
+            "Corrosion, Matériaux et Protection",
+            "Électrochimie, Environnement & Énergie",
+            "Synthèse et Hémisynthèse des Molécules Bioactives"
+        ],
+        "Laboratoire Génie des Matériaux, des Procédés et de l'Environnement": [
+            "Matériaux avancés et Procédés Membranaires",
+            "Matériaux Condensés et Céramiques",
+            "Traitement, Valorisation et Mécanismes"
+        ],
+        "Laboratoire Géosciences, Géomatique, Planétologie et Environnement": [
+            "Géomatique, Eau, Littoral et Environnement"
+        ],
+        "Laboratoire de Mécanique et Physique des Hautes Energies": [
+            "Information Quantique et Matière Condensée",
+            "Physique des Particules, Physique nucléaire et Applications",
+            "Physique Médicale et Dosimétrie",
+            "Rhéologie, Instabilité et Transition"
+        ],
+        "Laboratoire Génie Electrique, Industriel, Traitement de l'Information, Informatique, Logistique – Energies Renouvelables et Dynamique des Systèmes": [
+            "Dynamique des Systèmes - Génie Mécanique",
+            "Génie Electrique",
+            "Génie Industriel, Logistique, Automatique et Informatique",
+            "Laser et Dosimétrie - Stockage d'énergie et Efficacité énergétique",
+            "Traitement de l'Information"
+        ],
+        "Laboratoire de Physique des Matériaux Avancés et Thermique": [
+            "Equipe de Thermique",
+            "Matériaux appliqués aux énergies renouvelables",
+            "Matériaux magnétiques et applications",
+            "Matériaux multifonctionnels et environnement"
+        ],
+        "Laboratoire d'Analyse Mathématique, Algèbre et Applications": [
+            "Algèbre, Cryptographie et Théorie des Graphes",
+            "Analyse Harmonique et Théorie des Opérateurs",
+            "Contrôle des Systèmes et Optimisation",
+            "Equations aux Dérivées Partielles et Méthodes Numériques"
+        ],
+        "Laboratoire d'Informatique et des Systèmes": [
+            "Intelligence artificielle et systèmes distribués",
+            "Optimisation, Sécurité et Systèmes intelligents",
+            "Sciences de Données, Recherche Opérationnelle et Modèles Aléatoires"
+        ],
+        "Laboratoire d'Ingénierie des Données et Systèmes Intelligents": [
+            "Cybersécurité, Sciences des Données et Vision par Ordinateur",
+            "Ingénierie Systémique et Structures Mathématiques",
+            "Modélisation, Optimisation et Traitement Avancé des Données",
+            "Réseaux et Systèmes Intelligents"
+        ]
+    };
+
+    (function() {
+        var labSelect = document.getElementById('laboratoire');
+        var equipeSelect = document.getElementById('equipe_recherche');
+        if (!labSelect || !equipeSelect) return;
+
+        function remplirEquipes() {
+            var selected = labSelect.value;
+            equipeSelect.innerHTML = '<option value="">Sélectionner...</option>';
+            if (selected && equipesParLaboratoire[selected]) {
+                equipesParLaboratoire[selected].forEach(function(eq) {
+                    var opt = document.createElement('option');
+                    opt.value = eq;
+                    opt.textContent = eq;
+                    equipeSelect.appendChild(opt);
+                });
+            }
+        }
+
+        labSelect.addEventListener('change', remplirEquipes);
+    })();
+
+    // Modal de confirmation
+    let confirmResolve = null;
+
+    function showConfirmModal(message) {
+        return new Promise(function(resolve) {
+            confirmResolve = resolve;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmOverlay').classList.add('active');
+            document.getElementById('confirmOkBtn').onclick = function() {
+                if (confirmResolve) { confirmResolve(true); confirmResolve = null; }
+                closeConfirmModal();
+            };
+        });
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirmOverlay').classList.remove('active');
+        if (confirmResolve) { confirmResolve(false); confirmResolve = null; }
+    }
+
+    document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeConfirmModal();
+    });
+
+    // Modal de succès
+    let successResolve = null;
+
+    function showSuccessModal(message, title) {
+        return new Promise(function(resolve) {
+            successResolve = resolve;
+            if (title) document.getElementById('successTitle').textContent = title;
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successOverlay').classList.add('active');
+            document.getElementById('successOkBtn').onclick = function() {
+                document.getElementById('successOverlay').classList.remove('active');
+                if (successResolve) { successResolve(true); successResolve = null; }
+            };
+        });
+    }
+
+    document.getElementById('successOverlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            document.getElementById('successOverlay').classList.remove('active');
+            if (successResolve) { successResolve(true); successResolve = null; }
+        }
+    });
+
+    window.showSuccessModal = showSuccessModal;
+</script>
+<!-- Scripts modulaires pour le formulaire enseignant -->
+<script src="{{ url_for('static', filename='js/enseignant/utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/enseignant/modals.js') }}?v=20261020-ae13"></script>
+<script src="{{ url_for('static', filename='js/enseignant/step1.js') }}"></script>
+<script src="{{ url_for('static', filename='js/enseignant/step4.js') }}?v=20261020-ae13"></script>
+<script src="{{ url_for('static', filename='js/enseignant/step5.js') }}?v=20260522-ar21"></script>
+<script src="{{ url_for('static', filename='js/enseignant/navigation.js') }}"></script>
+<script src="{{ url_for('static', filename='js/enseignant/main.js') }}?v=20261020-ae13"></script>
+{% endblock %}

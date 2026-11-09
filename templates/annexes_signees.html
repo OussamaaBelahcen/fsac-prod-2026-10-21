@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}Annexes signées{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/Style_enseignant.css') }}">
+<style>
+.doc-wrap {
+    max-width: 1100px; width: 92%; margin: 0 auto;
+}
+.doc-glass {
+    background: #F5F7FC;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.02);
+    padding: 40px;
+    margin-bottom: 24px; transition: box-shadow .3s;
+}
+.doc-title {
+    display:flex; align-items:center; gap:10px;
+    font-size: 15px; font-weight: 700; color: #0f172a;
+    padding-bottom: 10px; margin-bottom: 18px;
+    border-bottom: 2px solid #dbeafe;
+    text-transform: uppercase; letter-spacing: .5px;
+}
+.doc-title i { color: #3b82f6; font-size: 16px; }
+.doc-sub {
+    font-size: 13px; color: #64748b; margin-bottom: 20px;
+}
+.upload-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 24px;
+}
+.annexe-grid {
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:20px;
+    justify-content:center;
+}
+.annexe-card {
+    background: #F5F7FC;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(203,213,225,.5);
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.8);
+    padding: 28px 24px;
+    transition: all .4s cubic-bezier(.4,0,.2,1);
+    display:flex; flex-direction:column;
+    position:relative; overflow:hidden;
+}
+.annexe-card::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(800px circle at var(--mx,50%) var(--my,50%), rgba(59,130,246,.08), transparent 50%);
+    opacity:0; transition: opacity .5s ease; pointer-events:none;
+}
+.annexe-card:hover::before { opacity:1; }
+.annexe-card:hover {
+    border-color:rgba(59,130,246,.35);
+    box-shadow: 0 16px 48px rgba(59,130,246,.12), inset 0 1px 0 rgba(255,255,255,.9);
+    transform:translateY(-4px) scale(1.01);
+}
+.annexe-card-header {
+    display:flex; align-items:center; gap:14px; position:relative; z-index:1;
+}
+.annexe-card-icon {
+    width:52px; height:52px; border-radius:16px;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 1px solid rgba(59,130,246,.2);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    box-shadow: 0 4px 16px rgba(59,130,246,.08);
+}
+.annexe-card-icon i { font-size:1.4rem; color:#3b82f6; }
+.annexe-card-info { flex:1; min-width:0; }
+.annexe-card-title {
+    font-weight:800; font-size:16px; color:#0f172a;
+    letter-spacing:.3px;
+}
+.annexe-card-desc {
+    font-size:12px; color:#64748b; margin-top:4px;
+    letter-spacing:.2px;
+}
+.annexe-card-divider {
+    height:1px;
+    background: linear-gradient(90deg, transparent, rgba(59,130,246,.3), transparent);
+    margin:18px 0; position:relative; z-index:1;
+}
+.annexe-card-actions {
+    display:flex; align-items:center; gap:12px; position:relative; z-index:1;
+}
+.annexe-view-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 20px; border-radius:30px;
+    font-size:12px; font-weight:700; letter-spacing:.3px;
+    background: rgba(239,68,68,.08); color:#dc2626;
+    border:1px solid rgba(239,68,68,.25); text-decoration:none;
+    transition:all .3s ease;
+}
+.annexe-view-btn:hover {
+    background: rgba(239,68,68,.12); color:#991b1b;
+    border-color:rgba(239,68,68,.4); text-decoration:none;
+    box-shadow:0 4px 20px rgba(239,68,68,.12);
+}
+.annexe-card-actions .annexe-upload-btn { margin-left:auto; }
+.annexe-upload-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 20px; border-radius:30px;
+    font-size:12px; font-weight:700; cursor:pointer; letter-spacing:.3px;
+    transition:all .3s ease; border:none; margin:0;
+}
+.annexe-upload-btn-outline {
+    background: rgba(255,255,255,.9); color:#475569;
+    border:1.5px solid #e2e8f0;
+}
+.annexe-upload-btn-outline:hover {
+    background: #f1f5f9; color:#1e293b;
+    border-color:#cbd5e1;
+    box-shadow:0 4px 16px rgba(0,0,0,.04);
+}
+.annexe-upload-btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color:#fff;
+    box-shadow:0 4px 20px rgba(59,130,246,.3);
+}
+.annexe-upload-btn-primary:hover {
+    transform:translateY(-2px);
+    box-shadow:0 8px 28px rgba(59,130,246,.4);
+}
+.upload-signed {
+    font-size:11px; color:#34d399; font-weight:700; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:4px; flex-shrink:0;
+    background:rgba(52,211,153,.1); padding:4px 10px; border-radius:20px;
+    border:1px solid rgba(52,211,153,.2);
+}
+/* Responsive — same layout approach as Déposer un Dossier */
+@media (max-width: 768px) {
+    .doc-glass { padding: 20px; border-radius: 12px; }
+    .doc-title { font-size: 13px; }
+    .annexe-grid { grid-template-columns: 1fr; gap: 16px; }
+    .annexe-card { padding: 22px 18px; border-radius: 20px; }
+    .annexe-card-header { flex-wrap: wrap; }
+    .annexe-card-icon { width: 46px; height: 46px; }
+    .annexe-card-icon i { font-size: 1.2rem; }
+    .annexe-card-title { font-size: 15px; }
+    .annexe-card-actions { flex-wrap: wrap; gap: 8px; }
+    .annexe-view-btn, .annexe-upload-btn { flex: 1; justify-content: center; padding: 10px 14px; font-size: 11px; }
+    .annexe-card-actions .annexe-upload-btn { margin-left: 0; }
+}
+.doc-empty {
+    text-align:center; padding:48px 24px;
+    max-width:520px; margin:0 auto;
+}
+.doc-empty i { font-size:2.8rem; color:#3b82f6; opacity:.5; margin-bottom:16px; }
+.doc-empty h4 { font-weight:700; font-size:17px; color:#0f172a; margin-bottom:8px; }
+.doc-empty p { font-size:13px; color:#64748b; margin:0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="banner-primary">
+    <div class="banner-glow"></div>
+    <h1><i class="fas fa-signature me-2"></i>ANNEXES SIGNÉES</h1>
+    <p>Déposez les versions signées (scannées) de vos annexes</p>
+</div>
+
+<div class="doc-wrap">{% if dossier and dossier.statut in ('soumis', 'évalué', 'validé', 'rejeté') %}
+
+<div class="upload-card">
+    <div class="doc-title"><i class="fas fa-signature"></i>Annexes signées</div>
+    <p class="doc-sub">Déposez ici les versions signées (scannées) de vos annexes générées.</p>
+
+    {% set annexes = [
+        (1, 'I', 'AE - Activités d\'Enseignement', 'fas fa-graduation-cap', dossier.annexe_i_signe),
+        (2, 'II', 'AR - Activités de Recherche', 'fas fa-tasks', dossier.annexe_ii_signe),
+    ] %}
+
+    <div class="annexe-grid">
+    {% for idx, num, label, icon, filepath in annexes %}
+    <div class="annexe-card">
+        <div class="annexe-card-header">
+            <div class="annexe-card-icon"><i class="{{ icon }}"></i></div>
+            <div class="annexe-card-info">
+                <div class="annexe-card-title">Annexe {{ num }}</div>
+                <div class="annexe-card-desc">{{ label }}</div>
+            </div>
+            {% if filepath %}
+            <span class="upload-signed"><i class="fas fa-check-circle"></i> Signé</span>
+            {% endif %}
+        </div>
+        {% if filepath %}
+        <div class="annexe-card-divider"></div>
+        <div class="annexe-card-actions">
+            <a href="{{ url_for('static', filename=filepath) }}" target="_blank" class="annexe-view-btn">
+                <i class="fas fa-file-pdf"></i> Voir le document
+            </a>
+            {% endif %}
+            <label class="annexe-upload-btn {{ 'annexe-upload-btn-primary' if not filepath else 'annexe-upload-btn-outline' }}" style="position:relative;overflow:hidden;">
+                <span style="pointer-events:none;"><i class="fas fa-upload"></i> {{ 'Uploader' if not filepath else 'Remplacer' }}</span>
+                <input type="file" accept=".pdf" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;" data-dossier="{{ dossier.id }}" data-annexe="{{ idx }}" onchange="uploadAnnexeSignee(this)">
+            </label>
+        {% if filepath %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    </div>
+</div>
+
+{% else %}
+
+<div class="doc-glass">
+    <div class="doc-empty">
+        <i class="fas fa-info-circle"></i>
+        <h4>La soumission du dossier n'a pas encore été effectuée</h4>
+        <p>Veuillez d'abord soumettre votre dossier pour pouvoir déposer les annexes signées.</p>
+    </div>
+</div>
+
+{% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.annexe-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+        card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+    });
+});
+function uploadAnnexeSignee(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const dossierId = input.dataset.dossier;
+    const annexeNum = input.dataset.annexe;
+    const btn = input.closest('label');
+
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch(`/api/upload-annexe-signe/${dossierId}/${annexeNum}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erreur : ' + (data.message || 'Échec de l\'upload.'));
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Erreur réseau.');
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    });
+}
+</script>
+{% endblock %}

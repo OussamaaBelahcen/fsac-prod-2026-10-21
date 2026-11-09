@@ -1,0 +1,37 @@
+services:
+  db:
+    image: mysql:5.7
+    container_name: fsac_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB:-Fsac}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-root}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./shema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: fsac_web
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - ./static:/app/static
+      - ./templates:/app/templates
+
+volumes:
+  db_data:

@@ -1,0 +1,10 @@
+Flask==3.0.3
+Flask-MySQLdb
+bcrypt
+python-dotenv
+mysqlclient
+PyMySQL
+Werkzeug
+xhtml2pdf
+gunicorn
+openpyxl==3.1.5

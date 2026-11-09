@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 4.3cm 2cm 2.8cm 2cm;
+            @frame header_frame {
+                -pdf-frame-content: header_content;
+                left: 2cm;
+                width: 17cm;
+                top: 0.5cm;
+                height: 3.5cm;
+            }
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left: 2cm;
+                width: 17cm;
+                top: 27.2cm;
+                height: 2.5cm;
+            }
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 10pt;
+            line-height: 1.3;
+            margin: 0;
+            color: #000;
+        }
+
+        /* Header Styling */
+        .header-banner {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header-banner img {
+            width: 100%;
+            /* max-width: 100%; removed for xhtml2pdf compatibility */
+            height: auto;
+            display: block;
+        }
+
+        .separator {
+            border-top: 2px solid #000;
+            margin: 10px 0 20px 0;
+        }
+
+        /* Title Styling */
+        .main-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 12pt;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .sub-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 12pt;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        /* Info Section Styling */
+        .info-section {
+            margin-bottom: 20px;
+            font-size: 11pt;
+        }
+
+        .info-row {
+            margin-bottom: 5px;
+        }
+
+        .info-label {
+            font-weight: bold;
+        }
+
+        /* Note Styling */
+        .note {
+            font-size: 9pt;
+            margin: 10px 0 20px 0;
+        }
+
+        .note ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        /* Section Header Styling */
+        .section-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14pt;
+            margin: 30px 0 15px 0;
+        }
+
+        /* Table Styling - Version compatible xhtml2pdf */
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 9pt;
+            table-layout: fixed;
+        }
+
+        table.data-table th,
+        table.data-table td {
+            border: 1px solid #5abcb9;
+            padding: 2px 2px;
+            text-align: center;
+            vertical-align: top;
+            white-space: normal;
+            word-break: break-all;
+            line-height: 1.15;
+        }
+
+        table.data-table th {
+            background-color: #5abcb9;
+            color: #ffffff;
+            font-weight: normal;
+            font-size: 5.5pt;
+            line-height: 1.1;
+        }
+
+        table.data-table td {
+            font-weight: bold;
+            font-size: 5.5pt;
+            line-height: 1.15;
+        }
+
+        table.data-table td.text-long {
+            text-align: left;
+            font-weight: bold;
+            font-size: 5.5pt;
+        }
+
+        /* Footer/Signature Styling */
+        .attestation {
+            margin-top: 40px;
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+
+        .signature-section {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 10pt;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        /* Utility */
+        .bold {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- PAGE 1 -->
+
+    <!-- Entête et pied de page (répétés sur chaque page) -->
+    <div id="header_content">
+        <img src="{{ static_path }}/images/entete.png" alt="Entête FSAC" style="width: 17cm; height: 3.5cm;">
+    </div>
+    <div id="footer_content">
+        <img src="{{ static_path }}/images/pieddepage.png" alt="Pied de page FSAC" style="width: 17cm; height: 2.07cm;">
+    </div>
+
+    <!-- Titles -->
+    <div class="main-title">
+        AVANCEMENT DES ENSEIGNANTS-CHERCHEURS AU TITRE DE L'ANNEE {{ annee }}
+    </div>
+    <div class="sub-title">
+        ANNEXE I : ACTIVITÉS D'ENSEIGNEMENT - TABLEAUX DESCRIPTIFS
+    </div>
+
+    <!-- Info Section -->
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">Nom:</span> {{ enseignant.nom or '' }} &nbsp;&nbsp;
+            <span class="info-label">Prénom:</span> {{ enseignant.prenom or '' }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Cadre:</span> {{ enseignant.cadre or '' }} &nbsp;&nbsp;
+            <span class="info-label">Grade:</span> {{ enseignant.grade or '' }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Établissement:</span> {{ enseignant.etablissement or '' }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Département:</span> {{ enseignant.departement or '' }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Période d'avancement considérée:</span> {{ enseignant.periode_avancement or '' }}
+        </div>
+    </div>
+
+    <!-- Note -->
+    <div class="note">
+        ● Ajouter autant de lignes que nécessaires aux tableaux ci-dessous et faire cacheter toutes les pages.<br>
+        ● Les pages de garde cachetées des mémoires doivent être adjointes au dossier des justificatifs.
+    </div>
+
+
+    <!-- AE1 - Production pédagogique -->
+    <div class="section-header">
+        AE1 - Production pédagogique
+    </div>
+
+    <!-- AE1-1 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE1-1 : Publications d'ouvrages
+        d'enseignement</div>
+    <table class="data-table">
+        <col width="20%">
+        <col width="12%">
+        <col width="8%">
+        <col width="12%">
+        <col width="8%">
+        <col width="10%">
+        <col width="15%">
+        <col width="15%">
+        <thead>
+            <tr>
+                <th>Titres</th>
+                <th>Auteurs</th>
+                <th>Niveaux</th>
+                <th>Éditeurs</th>
+                <th>Années</th>
+                <th>Justificatifs</th>
+                <th>N° Dépôt/ISBN</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae1_1_data %}
+            {% for item in ae1_1_data %}
+            <tr>
+                <td>{{ item.titres | break_long_words }}</td>
+                <td>{{ item.auteurs | break_long_words }}</td>
+                <td>{{ item.niveaux | break_long_words }}</td>
+                <td>{{ item.editeurs | break_long_words }}</td>
+                <td>{{ item.annees | break_long_words }}</td>
+                <td>{% if item.justificatifs %}<a href="{{ url_for('static', filename=item.justificatifs, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+                <td>{{ item.numero_depot | break_long_words }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE1-2 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE1-2 : Manuels ou polycopiés
+        d'enseignement</div>
+    <table class="data-table">
+        <col width="15%"><col width="18%"><col width="18%"><col width="12%"><col width="8%"><col width="8%"><col width="21%">
+        <thead>
+            <tr>
+                <th>Auteurs</th><th>Départements</th><th>Filières</th><th>Années</th><th>Semestres</th><th>Type de polycopié</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae1_2_data %}
+            {% for item in ae1_2_data %}
+            <tr>
+                <td>{{ item.auteurs | break_long_words }}</td>
+                <td>{{ item.departements | break_long_words }}</td>
+                <td>{{ item.filieres | break_long_words }}</td>
+                <td>{{ item.annees | break_long_words }}</td>
+                <td>{{ item.semestres | break_long_words }}</td>
+                <td>{{ item.types | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE1-3 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE 1-3 Supports NTIC et Innovations pédagogiques (diaporamas, didacticiels, miseen place de nouveaux TPs, page web ou homepage à caractère pédagogique)
+    </div>
+    <table class="data-table">
+        <col width="15%"><col width="12%"><col width="12%"><col width="8%"><col width="10%"><col width="12%"><col width="12%"><col width="19%">
+        <thead>
+            <tr>
+                <th>Objectifs</th><th>Auteurs</th><th>Filières</th><th>Niveaux</th><th>Années</th><th>Liens</th><th>Support NTIC</th><th>Types</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae1_3_data %}
+            {% for item in ae1_3_data %}
+            <tr>
+                <td class="text-long">{{ item.objectifs | break_long_words }}</td>
+                <td>{{ item.auteurs | break_long_words }}</td>
+                <td>{{ item.filieres | break_long_words }}</td>
+                <td>{{ item.niveaux | break_long_words }}</td>
+                <td>{{ item.annees | break_long_words }}</td>
+                <td>{% if item.liens %}<a href="{{ item.liens }}" style="color: blue; text-decoration: underline;">Lien</a>{% else %}-{% endif %}</td>
+                <td class="text-long">{{ item.support_ntic | break_long_words }}</td>
+                <td>{{ item.types | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="9" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE2 - Encadrement pédagogique -->
+    <div class="section-header">
+        AE2 - Encadrement pédagogique
+    </div>
+
+    <!-- AE2-1 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE2-1 : Encadrement de cours, TD, TP et PFE (Licence)</div>
+    <table class="data-table">
+        <col width="8%"><col width="6%"><col width="15%"><col width="17%"><col width="17%"><col width="8%"><col width="10%"><col width="10%"><col width="9%">
+        <thead>
+            <tr>
+                <th>Année</th><th>Type de Licence</th><th>Intitulé Licence</th><th>Type</th><th>Intitulé du module</th><th>Intitulé PFE</th><th>Module/Élément</th><th>Département</th><th>Co-encadrant(s)</th><th>Type encadrante</th><th>Copie de la page de garde cachetée</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae2_1_data %}
+            {% for item in ae2_1_data %}
+            <tr>
+                <td>{{ item.annees_univ | break_long_words or '—' }}</td>
+                <td>{{ item.types | break_long_words or '—' }}</td>
+                <td>{{ item.filieres | break_long_words or '—' }}</td>
+                <td class="text-long">{{ item.intitules | break_long_words or '—' }}</td>
+                <td class="text-long">{{ item.intitule_module | break_long_words or '—' }}</td>
+                <td class="text-long">{{ item.details | break_long_words or '—' }}</td>
+                <td>{{ item.modules | break_long_words or '—' }}</td>
+                <td>{{ item.departements | break_long_words or '—' }}</td>
+                <td>{{ item.coenseignants | break_long_words or '—' }}</td>
+                <td>{% if item.type_encadrement == 'pfe' %}Encadrement de PFE{% else %}Cours, TD et/ou TP{% endif %}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="11" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE 2-2 Encadrement de cours et mémoires de fin d'étude (cycle Master)</div>
+    <table class="data-table">
+        <col width="8%"><col width="6%"><col width="13%"><col width="13%"><col width="13%"><col width="9%"><col width="8%"><col width="8%"><col width="8%"><col width="14%">
+        <thead>
+            <tr>
+                <th>Année</th><th>Type de Master</th><th>Intitulé Master</th><th>l'intitulé du module</th><th>Intitulé mémoire</th><th>Coordonnateur</th><th>Co-encadrant(s)</th><th>Département</th><th>Type d'activité</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae2_2_data %}
+            {% for item in ae2_2_data %}
+            <tr>
+                <td>{{ item.annees_univ | break_long_words or '—' }}</td>
+                <td>{{ item.types | break_long_words or '—' }}</td>
+                <td>{{ item.filieres | break_long_words or '—' }}</td>
+                <td class="text-long">{{ item.intitules | break_long_words or '—' }}</td>
+                <td class="text-long">{{ item.nom_etudiants | break_long_words or '—' }}</td>
+                <td>{{ item.coordonnateurs | break_long_words or '—' }}</td>
+                <td>{{ item.coenseignants | break_long_words or '—' }}</td>
+                <td>{{ item.departements | break_long_words or '—' }}</td>
+                <td>{% if item.type_encadrement == 'memoire' %}Encadrement de mémoire{% else %}Cours{% endif %}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="10" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE2-3 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE 2-3 Encadrement d'autres activités (sorties de terrain, animation de séminaires ou formations,…)</div>
+    <table class="data-table dense">
+        <col width="16%"><col width="18%"><col width="18%"><col width="18%"><col width="30%">
+        <thead>
+            <tr>
+                <th>Type de formation</th><th>Établissement</th><th>Date</th><th>Lieu</th><th>Période de l'ordre de mission</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae2_3_data %}
+            {% for item in ae2_3_data %}
+            <tr>
+                <td>{{ item.types | break_long_words }}</td>
+                <td>{{ item.nom_etudiants | break_long_words }}</td>
+                <td>{{ item.dates | break_long_words }}</td>
+                <td>{{ item.lieux | break_long_words }}</td>
+                <td>{{ item.durees | break_long_words }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <!-- AE3 - Responsabilités pédagogiques -->
+    <div class="section-header">
+        AE3 - Responsabilités pédagogiques et administratives
+    </div>
+
+    <!-- AE3-1 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE3-1 : Chef de département ou membre de collège (ou bureau) du département</div>
+    <table class="data-table">
+        <col width="25%"><col width="25%"><col width="15%"><col width="35%">
+        <thead>
+            <tr>
+                <th>Nature de la responsabilité</th><th>Période</th><th>Nb mandats</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae3_1_data %}
+            {% for item in ae3_1_data %}
+            <tr>
+                <td>{{ item.natures | break_long_words }}</td>
+                <td>{{ item.periodes | break_long_words }}</td>
+                <td>{{ item.mandats | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="4" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE3-2 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE3-2 : Coordonnateur de filière</div>
+    <table class="data-table">
+        <col width="30%"><col width="20%"><col width="25%"><col width="25%">
+        <thead>
+            <tr>
+                <th>Intitulé de la filière</th><th>Nb accréditations</th><th>Période</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae3_2_data %}
+            {% for item in ae3_2_data %}
+            <tr>
+                <td class="text-long">{{ item.titres | break_long_words }}</td>
+                <td>{{ item.accreditations | break_long_words }}</td>
+                <td>{{ item.periodes | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="4" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE3-3 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE3-3 : Responsable de module</div>
+    <table class="data-table">
+        <col width="30%"><col width="20%"><col width="25%"><col width="25%">
+        <thead>
+            <tr>
+                <th>Intitulé du module</th><th>Filière</th><th>Période</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae3_3_data %}
+            {% for item in ae3_3_data %}
+            <tr>
+                <td class="text-long">{{ item.titres | break_long_words }}</td>
+                <td>{{ item.filieres | break_long_words }}</td>
+                <td>{{ item.periodes | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="4" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE3-4 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE3-4 : Membre du conseil d'Établissement</div>
+    <table class="data-table">
+        <col width="40%"><col width="60%">
+        <thead>
+            <tr>
+                <th>Période du mandat</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae3_4_data %}
+            {% for item in ae3_4_data %}
+            <tr>
+                <td>{{ item.periodes | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="2" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE3-5 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE3-5 : Membre du conseil d'Université</div>
+    <table class="data-table">
+        <col width="40%"><col width="60%">
+        <thead>
+            <tr>
+                <th>Période du mandat</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae3_5_data %}
+            {% for item in ae3_5_data %}
+            <tr>
+                <td>{{ item.periodes | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="2" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE3-6 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE3-6 : Membre de la commission scientifique</div>
+    <table class="data-table">
+        <col width="40%"><col width="60%">
+        <thead>
+            <tr>
+                <th>Période du mandat</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae3_6_data %}
+            {% for item in ae3_6_data %}
+            <tr>
+                <td>{{ item.periodes | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="2" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AE3-7 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AE 3-7 Membre de commission d'expertise ou d'évaluation pédagogique à l'échelle nationale ou internationale</div>
+    <table class="data-table">
+        <col width="30%"><col width="15%"><col width="20%"><col width="35%">
+        <thead>
+            <tr>
+                <th>Nature de l'activité effectuée</th><th>Date</th><th>Lieu</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae3_7_data %}
+            {% for item in ae3_7_data %}
+            <tr>
+                <td>{{ item.natures | break_long_words }}</td>
+                <td>{{ item.dates | break_long_words }}</td>
+                <td>{{ item.lieux | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="4" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+    <table class="data-table">
+        <col width="18%"><col width="18%"><col width="18%"><col width="28%"><col width="18%">
+        <thead>
+            <tr>
+                <th>Institutions</th><th>Rôles</th><th>Objets</th><th>Détails</th><th>Fichier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ae3_7_data %}
+            {% for item in ae3_7_data %}
+            <tr>
+                <td>{{ item.institutions | break_long_words }}</td>
+                <td>{{ item.roles | break_long_words }}</td>
+                <td>{{ item.objets | break_long_words }}</td>
+                <td class="text-long">{{ item.details | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="5" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div class="attestation">
+        Je soussigné(e), certifie l'exactitude des informations fournies dans ce document.
+    </div>
+
+    <table style="width: 100%; margin-top: 30px; border: none;">
+        <tr>
+            <td style="text-align: left; border: none; font-weight: bold;">Date: {{ now.strftime('%d/%m/%Y') }}</td>
+            <td style="text-align: right; border: none; font-weight: bold;">Signature de l'enseignant:</td>
+        </tr>
+    </table>
+
+</body>
+
+</html>

@@ -1,0 +1,740 @@
+{% extends "base.html" %}
+{% block title %}Affectation des Dossiers - Commission Scientifique{% endblock %}
+
+{% block extra_css %}
+<style>
+    .banner-primary {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0B162C 0%, #043775 50%, #0258b3 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        text-align: center;
+        isolation: isolate;
+    }
+    .banner-primary::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,.1), transparent 60%),
+                    radial-gradient(ellipse at 80% 50%, rgba(255,255,255,.08), transparent 60%);
+        z-index: 0;
+    }
+    .banner-primary h1 {
+        position: relative;
+        z-index: 1;
+        font-size: 22px;
+        margin-bottom: 8px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #fff;
+        text-transform: uppercase;
+    }
+    .banner-primary p {
+        position: relative;
+        z-index: 1;
+        font-size: 14px;
+        color: rgba(255,255,255,.8);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .coord-filter-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .filter-tabs {
+        display: flex;
+        gap: 4px;
+        background: #f1f4f9;
+        padding: 4px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .filter-tab {
+        padding: 8px 22px;
+        border: none;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        background: transparent;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .filter-tab:hover {
+        color: #0B162C;
+    }
+    .filter-tab.active {
+        background: linear-gradient(135deg, #0B162C, #043775);
+        color: white;
+        box-shadow: 0 4px 16px rgba(11, 22, 44, 0.2);
+    }
+    .filter-sep {
+        width: 1px;
+        align-self: stretch;
+        margin: 6px 8px;
+        background: #cbd5e1;
+    }
+    .content-wrapper .table-responsive {
+        border-radius: 16px;
+        background: #F5F7FC;
+        border: 1px solid #e2e8f0;
+        overflow: visible;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+    }
+    .coord-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: transparent;
+    }
+    .coord-table thead tr {
+        background: linear-gradient(135deg, #0B162C, #043775);
+    }
+    .coord-table th {
+        padding: 14px 18px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: rgba(255, 255, 255, 0.8);
+        border-bottom: none;
+        white-space: nowrap;
+        text-align: center;
+    }
+    .coord-table td {
+        padding: 16px 18px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        vertical-align: middle;
+        color: #1e293b;
+        background: #F5F7FC;
+        transition: background 0.2s;
+        text-align: center;
+    }
+    .coord-table tbody tr {
+        transition: background 0.2s;
+    }
+    .coord-table tbody tr.dossier-row {
+        cursor: pointer;
+    }
+    .coord-table tbody tr:hover td {
+        background: #f0f4ff;
+    }
+    .coord-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .coord-table .empty-row td {
+        padding: 48px 16px;
+        color: #94a3b8;
+        font-size: 14px;
+        text-align: center;
+        background: #F5F7FC;
+    }
+
+    .badge-coord {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+    }
+    .coord-table td.statut-cell { white-space: nowrap; }
+    .badge-coord.badge-soumis,
+    .badge-coord.badge-evalue {
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 12px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .badge-soumis {
+        background: rgba(255, 193, 7, 0.12);
+        color: #b8860b;
+        border: 1px solid rgba(255, 193, 7, 0.2);
+    }
+    .badge-evalue {
+        background: rgba(16, 185, 129, 0.12);
+        color: #047857;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .assignee-wrap {
+        position: relative;
+        display: inline-flex;
+        padding: 16px;
+        margin: -16px;
+    }
+    .assignee-wrap .tip {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% - 8px);
+        transform: translateX(-50%);
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: #0B162C;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0;
+        white-space: nowrap;
+        box-shadow: 0 10px 24px rgba(11, 22, 44, 0.25);
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        z-index: 30;
+    }
+    .assignee-wrap:hover .tip {
+        opacity: 1;
+        visibility: visible;
+    }
+    .badge-assigned {
+        background: rgba(11, 22, 44, 0.08);
+        color: #0B162C;
+        border: 1px solid rgba(11, 22, 44, 0.12);
+    }
+
+    .btn-coord {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        border: none;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
+        letter-spacing: 0.2px;
+    }
+    .btn-coord-primary {
+        background: linear-gradient(135deg, #0B162C, #043775);
+        color: white;
+        box-shadow: 0 4px 16px rgba(11, 22, 44, 0.2);
+    }
+    .btn-coord-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(11, 22, 44, 0.3);
+    }
+    .btn-coord-warning {
+        background: linear-gradient(135deg, #0B162C, #043775);
+        color: white;
+        border: none;
+    }
+    .btn-coord-warning:hover {
+        background: linear-gradient(135deg, #043775, #0258b3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(11, 22, 44, 0.25);
+    }
+    .btn-coord-reassign {
+        background: linear-gradient(135deg, rgba(249,115,22,.15), rgba(255,152,0,.1));
+        color: #f97316;
+        border: 2px solid rgba(249,115,22,.4);
+    }
+    .btn-coord-reassign:hover {
+        background: linear-gradient(135deg, rgba(249,115,22,.25), rgba(255,152,0,.2));
+        box-shadow: 0 4px 16px rgba(249,115,22,.2);
+        color: #fff;
+    }
+
+    /* ============================================
+       Modal futuriste — Assigner un membre
+       ============================================ */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(12px) saturate(1.2);
+        -webkit-backdrop-filter: blur(12px) saturate(1.2);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-overlay.active {
+        display: flex;
+    }
+    .modal-overlay.active .modal-box {
+        animation: modalFloatIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes modalFloatIn {
+        from { opacity: 0; transform: translateY(40px) scale(0.92); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes popupFloatIn {
+        from { opacity: 0; transform: translateY(40px) scale(0.92); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-overlay::before {
+        content: '';
+        position: fixed;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background:
+            radial-gradient(ellipse at 20% 50%, rgba(11, 22, 44, 0.15) 0%, transparent 60%),
+            radial-gradient(ellipse at 80% 50%, rgba(4, 55, 117, 0.1) 0%, transparent 60%);
+        pointer-events: none;
+        z-index: -1;
+    }
+    .modal-box {
+        position: relative;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(24px) saturate(1.6);
+        -webkit-backdrop-filter: blur(24px) saturate(1.6);
+        padding: 36px;
+        border-radius: 20px;
+        width: 460px;
+        max-width: 90vw;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow:
+            0 32px 80px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+            0 0 40px rgba(11, 22, 44, 0.12);
+        opacity: 0;
+        transform: translateY(40px) scale(0.92);
+    }
+    .modal-box::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: 20px;
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.04), rgba(11,22,44,0.25), rgba(255,255,255,0.04));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+    .modal-box::after {
+        content: '';
+        position: absolute;
+        top: -1px; left: 30%; right: 30%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(11,22,44,0.5), transparent);
+        border-radius: 2px;
+        filter: blur(1px);
+    }
+    .modal-box h4 {
+        margin: 0 0 20px 0;
+        font-size: 17px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.95);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        letter-spacing: -0.2px;
+    }
+    .modal-box h4 i {
+        width: 36px; height: 36px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(11,22,44,0.3), rgba(4,55,117,0.15));
+        border: 1px solid rgba(255,255,255,0.08);
+        font-size: 15px;
+        color: #5b8dcf;
+    }
+    .modal-field {
+        margin-bottom: 18px;
+    }
+    .modal-field label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
+    .modal-field .modal-info {
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 500;
+    }
+    .modal-field select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.85);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        padding-right: 40px;
+        cursor: pointer;
+    }
+    .modal-field select:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .modal-field select:focus {
+        outline: none;
+        border-color: rgba(11, 22, 44, 0.5);
+        box-shadow: 0 0 0 3px rgba(11, 22, 44, 0.15), 0 0 20px rgba(11, 22, 44, 0.05);
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .modal-field select option {
+        background: #1a1a2e;
+        color: rgba(255, 255, 255, 0.85);
+    }
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 28px;
+    }
+    .modal-actions .btn-coord {
+        padding: 10px 22px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .modal-actions #cancel-btn {
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .modal-actions #cancel-btn:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+    }
+    .modal-actions #confirm-btn {
+        background: linear-gradient(135deg, #0B162C, #043775) !important;
+        color: white !important;
+        box-shadow: 0 4px 20px rgba(11, 22, 44, 0.25);
+    }
+    .modal-actions #confirm-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(11, 22, 44, 0.35);
+    }
+    .modal-actions #confirm-btn:active {
+        transform: translateY(0);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Bannière principale -->
+<div class="banner-primary">
+    <h1>COORDINATION DE L'ÉVALUATION DES DOSSIERS D'AVANCEMENT {{ annee }}</h1>
+    <p>Affectation des dossiers aux membres de la commission</p>
+</div>
+
+<div class="content-wrapper">
+    <h2><i class="fas fa-users me-2" style="color: var(--primary-color);"></i>Affectation des Dossiers</h2>
+
+    <div class="coord-filter-bar">
+        {% set grade_actif = request.args.get('grade', '') %}
+        {% set statut_actif = request.args.get('statut', 'all') %}
+        <div class="filter-tabs">
+            <button class="filter-tab {% if statut_actif == 'all' %}active{% endif %}" onclick="window.location.href='/coordinateurpage?statut=all{% if grade_actif %}&grade={{ grade_actif }}{% endif %}'">Tous les dossiers</button>
+            <button class="filter-tab {% if statut_actif == 'assigned' %}active{% endif %}" onclick="window.location.href='/coordinateurpage?statut=assigned{% if grade_actif %}&grade={{ grade_actif }}{% endif %}'">Assignés</button>
+            <button class="filter-tab {% if statut_actif == 'unassigned' %}active{% endif %}" onclick="window.location.href='/coordinateurpage?statut=unassigned{% if grade_actif %}&grade={{ grade_actif }}{% endif %}'">Non assignés</button>
+            <span class="filter-sep"></span>
+            <button type="button" class="filter-tab {% if grade_actif == 'MC' %}active{% endif %}" title="Maître de conférences" onclick="filterByGrade('MC')">MC</button>
+            <button type="button" class="filter-tab {% if grade_actif == 'MCH' %}active{% endif %}" title="Maître de conférences habilité" onclick="filterByGrade('MCH')">MCH</button>
+            <button type="button" class="filter-tab {% if grade_actif == 'PES' %}active{% endif %}" title="Professeur de l'enseignement supérieur" onclick="filterByGrade('PES')">PES</button>
+        </div>
+        <span class="badge-coord badge-assigned"><i class="far fa-file-alt"></i> Total : {{ dossiers|length }} dossier(s)</span>
+    </div>
+    <script>
+    function filterByGrade(grade) {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('grade') === grade) params.delete('grade');
+        else params.set('grade', grade);
+        if (!params.has('statut')) params.set('statut', 'all');
+        window.location.href = '/coordinateurpage?' + params.toString();
+    }
+    </script>
+
+    <div class="table-responsive">
+        <table class="coord-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom & Prénom</th>
+                    <th>Département</th>
+                    <th>Grade</th>
+                    <th>Dépôt</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if dossiers %}
+                    {% for dossier in dossiers %}
+                    <tr class="dossier-row" onclick="window.location.href='{{ url_for('consulter_dossier', dossier_id=dossier.id) }}'">
+                        <td><strong>{{ dossier.id }}</strong></td>
+                        <td>
+                            <strong>{{ dossier.nom }} {{ dossier.prenom }}</strong><br>
+                            <small style="color: #94a3b8; font-size: 12px;">Né(e) le {{ dossier.date_naissance }}</small>
+                        </td>
+                        <td>{{ {
+                            'biologie': 'Biologie',
+                            'geologie': 'Géologie',
+                            'physique': 'Physique',
+                            'chimie': 'Chimie',
+                            'mathematique-informatique': 'Mathématiques et Informatique'
+                        }.get(dossier.departement, dossier.departement) }}</td>
+                        <td>{{ dossier.grade }}</td>
+                        <td>
+                            {% if dossier.date_soumission %}
+                                {{ dossier.date_soumission.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                <span style="color: #94a3b8; font-size: 13px;">Non soumis</span>
+                            {% endif %}
+                        </td>
+                        <td class="statut-cell">
+                            {% if dossier.statut == 'évalué' %}
+                                <span class="badge-coord badge-evalue"><i class="fas fa-check"></i> Vu / Avis donné</span>
+                            {% else %}
+                                <span class="badge-coord badge-soumis"><i class="fas fa-clock"></i> En cours</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if dossier.statut == 'soumis' %}
+                                {% if dossier.assigned %}
+                                <span class="assignee-wrap">
+                                    <button class="btn-coord btn-coord-reassign" onclick="event.stopPropagation(); openAssignModal('{{ dossier.id }}', '{{ dossier.nom }} {{ dossier.prenom }}', '{{ dossier.grade }}')">
+                                        <i class="fas fa-sync-alt"></i> Réassigner
+                                    </button>
+                                    <span class="tip">{% if dossier.membre_nom or dossier.membre_prenom %}Assigné à {{ dossier.membre_nom }} {{ dossier.membre_prenom }}{% else %}Membre de la commission non renseigné{% endif %}</span>
+                                </span>
+                                {% else %}
+                                <button class="btn-coord btn-coord-primary" onclick="event.stopPropagation(); openAssignModal('{{ dossier.id }}', '{{ dossier.nom }} {{ dossier.prenom }}', '{{ dossier.grade }}')">
+                                    <i class="fas fa-user-plus"></i> Assigner
+                                </button>
+                                {% endif %}
+                            {% else %}
+                                <span style="color: #94a3b8;">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr class="empty-row">
+                        <td colspan="7">Aucun dossier à afficher.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="assignModal" class="modal-overlay">
+    <div class="modal-box">
+        <h4><i class="fas fa-user-plus"></i> Assigner un membre</h4>
+        <div class="modal-field">
+            <label>Dossier</label>
+            <div id="modal-dossier-info" class="modal-info"></div>
+        </div>
+        <div class="modal-field">
+            <label>Membre de commission</label>
+            <select id="member-select">
+                <option value="">— Sélectionner un membre —</option>
+                {% for membre in membres_commission %}
+                    <option value="{{ membre.email_user }}" data-grade="{{ membre.grade or '' }}" data-nom="{{ membre.nom }} {{ membre.prenom }}">
+                        {{ membre.nom }} {{ membre.prenom }} ({{ membre.grade or 'Non défini' }})
+                    </option>
+                {% endfor %}
+            </select>
+            <div id="grade-warning" style="color: #dc3545; font-size: 12px; margin-top: 6px; display: none;"></div>
+        </div>
+        <div class="modal-actions">
+            <button id="cancel-btn" class="btn-coord"><i class="fas fa-times"></i> Annuler</button>
+            <button id="confirm-btn" class="btn-coord"><i class="fas fa-check"></i> Confirmer</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showPopup(type, title, message) {
+        const existing = document.querySelector('.custom-popup-overlay');
+        if (existing) existing.remove();
+
+        const isSuccess = type === 'success';
+        const iconClass = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-popup-overlay';
+        overlay.style.cssText = `
+            position:fixed; inset:0; z-index:99999;
+            background:rgba(0,0,0,.6); backdrop-filter:blur(8px);
+            display:flex; align-items:center; justify-content:center;
+            padding:20px;
+        `;
+
+        overlay.innerHTML = `
+            <div style="
+                background:rgba(255,255,255,.08); backdrop-filter:blur(24px) saturate(1.6);
+                -webkit-backdrop-filter:blur(24px) saturate(1.6);
+                border-radius:20px; padding:0;
+                width:100%; max-width:400px;
+                border:1px solid rgba(255,255,255,.12);
+                box-shadow:0 32px 80px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.06) inset;
+                overflow:hidden; animation:popupFloatIn .4s cubic-bezier(0.16,1,0.3,1);
+            ">
+                <div style="padding:40px 32px 24px; text-align:center;">
+                    <div style="
+                        width:64px; height:64px; border-radius:50%;
+                        background:${isSuccess ? '#0B162C' : '#dc3545'};
+                        display:flex; align-items:center; justify-content:center;
+                        margin:0 auto 16px;
+                        box-shadow:0 8px 24px ${isSuccess ? 'rgba(11,22,44,.25)' : 'rgba(220,53,69,.25)'};
+                    ">
+                        <i class="fas ${iconClass}" style="font-size:28px; color:#fff;"></i>
+                    </div>
+                    <h4 style="margin:0 0 8px; font-size:18px; font-weight:700; color:#fff;">${title}</h4>
+                    <p style="margin:0 0 24px; font-size:14px; color:rgba(255,255,255,.65); line-height:1.5;">${message}</p>
+                    <button onclick="this.closest('.custom-popup-overlay').remove()" style="
+                        background:${isSuccess ? '#0B162C' : '#dc3545'}; color:#fff; border:none;
+                        padding:10px 40px; border-radius:10px;
+                        font-size:14px; font-weight:600; cursor:pointer;
+                        transition:opacity .2s;
+                    " onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">OK</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.remove();
+        });
+    }
+
+    const GRADE_RANK = {
+        'MC C': 1, 'MC B': 2, 'MC A': 3,
+        'MCH C': 4, 'MCH B': 5, 'MCH A': 6,
+        'PES D': 7, 'PES C': 8, 'PES B': 9, 'PES A': 10
+    };
+
+    let currentDossierGrade = '';
+
+    function gradeRank(grade) {
+        return GRADE_RANK[grade] || 0;
+    }
+
+    function openAssignModal(dossierId, nomPrenom, dossierGrade) {
+        currentDossierGrade = dossierGrade;
+        document.getElementById('modal-dossier-info').textContent = `#${dossierId} - ${nomPrenom} (Grade: ${dossierGrade || 'Non défini'})`;
+        document.getElementById('assignModal').classList.add('active');
+        document.getElementById('grade-warning').style.display = 'none';
+        document.getElementById('grade-warning').textContent = '';
+        document.getElementById('member-select').value = '';
+        filterMembersByGrade();
+    }
+
+    function filterMembersByGrade() {
+        const select = document.getElementById('member-select');
+        const dossierRank = gradeRank(currentDossierGrade);
+        const options = select.querySelectorAll('option[data-grade]');
+        options.forEach(opt => {
+            const memberGrade = opt.getAttribute('data-grade');
+            const memberRank = gradeRank(memberGrade);
+            if (!memberGrade || memberRank <= dossierRank) {
+                opt.style.color = '#999';
+                opt.style.textDecoration = 'line-through';
+                opt.disabled = true;
+            } else {
+                opt.style.color = '';
+                opt.style.textDecoration = '';
+                opt.disabled = false;
+            }
+        });
+    }
+
+    document.getElementById('cancel-btn').addEventListener('click', function() {
+        document.getElementById('assignModal').classList.remove('active');
+        document.getElementById('member-select').value = '';
+    });
+
+    document.getElementById('member-select').addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        const memberGrade = selected.getAttribute('data-grade') || '';
+        const warningEl = document.getElementById('grade-warning');
+        const dossierRank = gradeRank(currentDossierGrade);
+        const memberRank = gradeRank(memberGrade);
+
+        if (memberGrade && memberRank <= dossierRank) {
+            warningEl.textContent = `⚠ Ce membre (grade ${memberGrade}) ne peut pas évaluer ce dossier (grade ${currentDossierGrade}). Le grade doit être strictement supérieur.`;
+            warningEl.style.display = 'block';
+        } else {
+            warningEl.style.display = 'none';
+            warningEl.textContent = '';
+        }
+    });
+
+    document.getElementById('confirm-btn').addEventListener('click', function() {
+        const memberEmail = document.getElementById('member-select').value;
+        const dossierId = document.getElementById('modal-dossier-info').textContent.split(' - ')[0].replace('#', '');
+        const warningEl = document.getElementById('grade-warning');
+
+        if (!memberEmail) {
+            alert('Veuillez sélectionner un membre de commission.');
+            return;
+        }
+
+        // Vérification côté client avant envoi
+        const selected = document.getElementById('member-select');
+        const opt = selected.options[selected.selectedIndex];
+        const memberGrade = opt.getAttribute('data-grade') || '';
+        const dossierRank = gradeRank(currentDossierGrade);
+        const memberRank = gradeRank(memberGrade);
+
+        if (memberGrade && memberRank <= dossierRank) {
+            warningEl.textContent = `⚠ Impossible : le grade du membre (${memberGrade}) doit être strictement supérieur à celui de l'enseignant (${currentDossierGrade}).`;
+            warningEl.style.display = 'block';
+            return;
+        }
+
+        fetch('/api/assign-commission-member', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dossier_id: dossierId, member_email: memberEmail })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showPopup('success', 'Assignation réussie', '✅ Assignation effectuée avec succès !');
+                setTimeout(() => location.reload(), 1800);
+            } else {
+                showPopup('error', 'Erreur', '❌ ' + (data.message || 'Une erreur est survenue.'));
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showPopup('error', 'Erreur', '❌ Erreur de connexion au serveur.');
+        });
+    });
+</script>
+{% endblock %}

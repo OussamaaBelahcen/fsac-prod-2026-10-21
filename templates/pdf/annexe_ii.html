@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 4.3cm 2cm 2.8cm 2cm;
+            @frame header_frame {
+                -pdf-frame-content: header_content;
+                left: 2cm;
+                width: 17cm;
+                top: 0.5cm;
+                height: 3.5cm;
+            }
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left: 2cm;
+                width: 17cm;
+                top: 27.2cm;
+                height: 2.5cm;
+            }
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 10pt;
+            line-height: 1.3;
+            margin: 0;
+            color: #000;
+        }
+
+        /* Header Styling */
+        .header-banner {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header-banner img {
+            width: 100%;
+            /* max-width: 100%; removed for xhtml2pdf compatibility */
+            height: auto;
+            display: block;
+        }
+
+        .separator {
+            border-top: 2px solid #000;
+            margin: 10px 0 20px 0;
+        }
+
+        /* Title Styling */
+        .main-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 12pt;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .sub-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 12pt;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        /* Info Section Styling */
+        .info-section {
+            margin-bottom: 20px;
+            font-size: 11pt;
+        }
+
+        .info-row {
+            margin-bottom: 5px;
+        }
+
+        .info-label {
+            font-weight: bold;
+        }
+
+        /* Note Styling */
+        .note {
+            font-size: 9pt;
+            margin: 10px 0 20px 0;
+        }
+
+        .note ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        /* Section Header Styling */
+        .section-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14pt;
+            margin: 30px 0 15px 0;
+        }
+
+        /* Table Styling - Version compatible xhtml2pdf */
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 9pt;
+            table-layout: fixed;
+        }
+
+        table.data-table th,
+        table.data-table td {
+            border: 1px solid #5abcb9;
+            padding: 2px 2px;
+            text-align: center;
+            vertical-align: top;
+            white-space: normal;
+            word-break: break-all;
+            line-height: 1.15;
+        }
+
+        table.data-table th {
+            background-color: #5abcb9;
+            color: #ffffff;
+            font-weight: normal;
+            font-size: 5.5pt;
+            line-height: 1.1;
+        }
+
+        table.data-table td {
+            font-weight: bold;
+            font-size: 5.5pt;
+            line-height: 1.15;
+        }
+
+        table.data-table td.text-long {
+            text-align: left;
+            font-weight: bold;
+            font-size: 5.5pt;
+        }
+
+        /* Footer/Signature Styling */
+        .attestation {
+            margin-top: 40px;
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+
+        .signature-section {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 10pt;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        /* Utility */
+        .bold {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- PAGE 1 -->
+
+    <!-- Entête et pied de page (répétés sur chaque page) -->
+    <div id="header_content">
+        <img src="{{ static_path }}/images/entete.png" alt="Entête FSAC" style="width: 17cm; height: 3.5cm;">
+    </div>
+    <div id="footer_content">
+        <img src="{{ static_path }}/images/pieddepage.png" alt="Pied de page FSAC" style="width: 17cm; height: 2.07cm;">
+    </div>
+
+    <!-- Titles -->
+    <div class="main-title">
+        AVANCEMENT DES ENSEIGNANTS-CHERCHEURS AU TITRE DE L'ANNEE {{ annee }}
+    </div>
+    <div class="sub-title">
+        ANNEXE II : ACTIVITÉS DE RECHERCHE - TABLEAUX DESCRIPTIFS
+    </div>
+
+    <!-- Info Section -->
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">Nom:</span> {{ enseignant.nom or '' }} &nbsp;&nbsp;
+            <span class="info-label">Prénom:</span> {{ enseignant.prenom or '' }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Cadre:</span> {{ enseignant.cadre or '' }} &nbsp;&nbsp;
+            <span class="info-label">Grade:</span> {{ enseignant.grade or '' }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Établissement:</span> {{ enseignant.etablissement or '' }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Département:</span> {{ enseignant.departement or '' }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Période d'avancement considérée:</span> {{ enseignant.periode_avancement or '' }}
+        </div>
+    </div>
+
+    <!-- Note -->
+    <div class="note">
+        ● Ajouter autant de lignes que nécessaires aux tableaux ci-dessous et faire cacheter toutes les pages.
+    </div>
+
+    <!-- AR1 - Production scientifique -->
+    <div class="section-header">
+        AR1 - Production scientifique
+    </div>
+
+    <!-- AR1-1 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 1-1 Publications scientifiques dans des revues spécialisées indexées (Scopus, Webof Knowledge)
+    </div>
+    <table class="data-table">
+        <col width="35%"><col width="15%"><col width="18%"><col width="17%"><col width="15%">
+        <thead>
+            <tr>
+                <th>Références de l'article y compris le DOI</th><th>Année de publication</th><th>Doctorants co-auteurs</th><th>Lien</th><th>Liste CED</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar1_1_data %}
+            {% for item in ar1_1_data %}
+            <tr>
+                <td class="text-long">{{ item.referenceComplete | break_long_words }}</td>
+                <td>{{ item.anneePublication | break_long_words }}</td>
+                <td>{{ item.doctorantsCoAuteurs | break_long_words }}</td>
+                <td>{% if item.lien %}<a href="{{ item.lien }}" style="color: blue; text-decoration: underline;">Lien</a>{% else %}-{% endif %}</td>
+                <td>{% if item.cedList %}<a href="{{ url_for('static', filename=item.cedList, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AR1-2 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 1-2 Publications dans les actes de manifestations scientifiques avec comité de lecture</div>
+    <table class="data-table">
+        <col width="15%"><col width="12%"><col width="15%"><col width="10%"><col width="10%"><col width="13%"><col width="13%"><col width="12%">
+        <thead>
+            <tr>
+                <th>Référence du proceeding ou titre de la communication</th><th>Nature activité</th><th>Manifestation</th><th>Lieu</th><th>Date</th><th>Lien</th><th>Attestation</th><th>1ère page</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar1_2_data %}
+            {% for item in ar1_2_data %}
+            <tr>
+                <td class="text-long">{{ item.reference | break_long_words }}</td>
+                <td>{{ item.natureTravail | break_long_words }}</td>
+                <td>{{ item.nomEvenement | break_long_words }}</td>
+                <td>{{ item.lieu | break_long_words }}</td>
+                <td>{{ item.dateEvenement | break_long_words }}</td>
+                <td>{% if item.lienSite %}<a href="{{ item.lienSite }}" style="color: blue; text-decoration: underline;">Lien</a>{% else %}-{% endif %}</td>
+                <td>{% if item.attestation %}<a href="{{ url_for('static', filename=item.attestation, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+                <td>{% if item.premiere_page %}<a href="{{ url_for('static', filename=item.premiere_page, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AR1-3 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 1-3 Ouvrages de recherche édités (livres ou chapitres de livres)</div>
+    <table class="data-table">
+        <col width="12%"><col width="15%"><col width="15%"><col width="15%"><col width="8%"><col width="12%"><col width="23%">
+        <thead>
+            <tr>
+                <th>Type</th><th>Titre</th><th>Auteurs</th><th>Maison d’éditions</th><th>Année</th><th>ISSN/ISBN</th><th>Page de garde</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar1_3_data %}
+            {% for item in ar1_3_data %}
+            <tr>
+                <td>{{ item.typeOuvrage | break_long_words }}</td>
+                <td class="text-long">{{ item.titreOuvrage | break_long_words }}</td>
+                <td>{{ item.auteurs | break_long_words }}</td>
+                <td>{{ item.maisonEditions | break_long_words }}</td>
+                <td>{{ item.annee | break_long_words }}</td>
+                <td>{{ item.issn | break_long_words }}</td>
+                <td>{% if item.page_garde %}<a href="{{ url_for('static', filename=item.page_garde, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AR1-4 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 1-4 Publications scientifiques dans des revues spécialisées nationales ou internationales avec comité de lecture
+    </div>
+    <table class="data-table">
+        <col width="22%"><col width="12%"><col width="14%"><col width="18%"><col width="17%"><col width="17%">
+        <thead>
+            <tr>
+                <th>Références</th><th>Année de publication</th><th>Doctorants co-auteurs</th><th>Auteur — Titre — Journal — Année</th><th>Copie 1ère page</th><th>Liste CED</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar1_4_data %}
+            {% for item in ar1_4_data %}
+            <tr>
+                <td class="text-long">{{ item.referenceComplete | break_long_words }}</td>
+                <td>{{ item.anneePublication | break_long_words }}</td>
+                <td>{{ item.doctorantsCoAuteurs | break_long_words }}</td>
+                <td class="text-long">{% if item.publication_url and item.publication_url.startswith('http') %}<a href="{{ item.publication_url }}" target="_blank" style="color: blue; text-decoration: underline;">{{ item.publication_url }}</a>{% else %}{{ item.publication_url | break_long_words or '—' }}{% endif %}</td>
+                <td>{% if item.lien %}<a href="{{ url_for('static', filename=item.lien, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+                <td>{% if item.cedList %}<a href="{{ url_for('static', filename=item.cedList, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+
+    <!-- AR2 - Encadrement scientifique -->
+    <div class="section-header">
+        AR2 - Encadrement scientifique
+    </div>
+
+    <!-- AR2-1 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR2-1 : Direction de thèses</div>
+    <table class="data-table">
+        <col width="12%"><col width="15%"><col width="25%"><col width="15%"><col width="13%"><col width="20%">
+        <thead>
+            <tr>
+                <th>Fichier thèse</th><th>Auteur thèse</th><th>Titre</th><th>Institution</th><th>Date soutenance</th><th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar2_1_data %}
+            {% for item in ar2_1_data %}
+            <tr>
+                <td>{% if item.these %}<a href="{{ url_for('static', filename=item.these, _external=True) }}" style="color: blue; text-decoration: underline;">Voir fichier</a>{% else %}-{% endif %}</td>
+                <td>{{ item.nomAuteur | break_long_words }}</td>
+                <td class="text-long">{{ item.titreThese | break_long_words }}</td>
+                <td>{{ item.institution | break_long_words }}</td>
+                <td>{{ item.dateSoutenance | break_long_words }}</td>
+                <td>{{ item.type | break_long_words }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AR2-2 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR2-2 : Rapporteur / Jury</div>
+    <table class="data-table">
+        <col width="12%"><col width="12%"><col width="12%"><col width="8%"><col width="16%"><col width="12%"><col width="8%"><col width="10%"><col width="10%">
+        <thead>
+            <tr>
+                <th>Invitation</th><th>Page de garde</th><th>Auteur</th><th>Type</th><th>Intitulé</th><th>Établissement</th><th>Date</th><th>Rôle</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar2_2_data %}
+            {% for item in ar2_2_data %}
+            <tr>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+                <td>{% if item.page_garde %}<a href="{{ url_for('static', filename=item.page_garde, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+                <td>{{ item.nomAuteur | break_long_words }}</td>
+                <td>{{ item.typeTravail | break_long_words }}</td>
+                <td class="text-long">{{ item.titre | break_long_words }}</td>
+                <td>{{ item.institution | break_long_words }}</td>
+                <td>{{ item.dateSoutenance | break_long_words }}</td>
+                <td>{{ item.role | break_long_words }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+
+    <!-- AR3 - Responsabilités scientifiques -->
+    <div class="section-header">
+        AR3 - Responsabilités scientifiques
+    </div>
+
+    <!-- AR3-1 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 3-1 Directeur de structure de recherche (laboratoire, pôle de compétence, centre thématique de recherche,…)</div>
+    <table class="data-table">
+        <col width="18%"><col width="22%"><col width="18%"><col width="12%"><col width="30%">
+        <thead>
+            <tr>
+                <th>Appellation</th><th>Adresse</th><th>Période</th><th>Attestation</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar3_1_data %}
+            {% for item in ar3_1_data %}
+            <tr>
+                <td>{{ item.nomStructure | break_long_words }}</td>
+                <td>{{ item.adresseStructure | break_long_words }}</td>
+                <td>{{ item.periode | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AR3-2 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR3-2 : Responsable d'équipe de recherche</div>
+    <table class="data-table">
+        <col width="18%"><col width="22%"><col width="18%"><col width="12%"><col width="30%">
+        <thead>
+            <tr>
+                <th>Appellation</th><th>Adresse</th><th>Structure dépendante</th><th>Période</th><th>Attestation</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar3_2_data %}
+            {% for item in ar3_2_data %}
+            <tr>
+                <td>{{ item.nomEquipe | break_long_words }}</td>
+                <td>{{ item.adresseEquipe | break_long_words }}</td>
+                <td>{{ item.structure_parente | break_long_words }}</td>
+                <td>{{ item.periode | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AR3-3 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 3-3 Responsable ou participant dans des projets ou contrats de recherche financés</div>
+    <table class="data-table">
+        <col width="8%"><col width="12%"><col width="12%"><col width="8%"><col width="12%"><col width="12%"><col width="8%"><col width="12%"><col width="8%"><col width="8%">
+        <thead>
+            <tr>
+                <th>Rôle</th><th>Responsable</th><th>Nature</th><th>Titre</th><th>Montant</th><th>Période</th><th>Partenaire</th><th>Contrat</th><th>Attestation</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar3_3_data %}
+            {% for item in ar3_3_data %}
+            <tr>
+                <td>{{ item.role | break_long_words }}</td>
+                <td>{{ item.nomResponsable | break_long_words }}</td>
+                <td>{{ item.nature | break_long_words }}</td>
+                <td class="text-long">{{ item.titre | break_long_words }}</td>
+                <td>{{ item.montant | break_long_words }}</td>
+                <td>{{ item.duree | break_long_words }}</td>
+                <td>{{ item.partenaire | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+                <td>{% if item.attestation_responsable %}<a href="{{ url_for('static', filename=item.attestation_responsable, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="9" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AR3-4 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 3-4 Activités d'expertise et d'évaluation scientifique à l'échelle nationale ou internationale (CNACES, CNRST, reviewer, editorial board, editor-in-chief,…)</div>
+    <table class="data-table">
+        <col width="18%"><col width="32%"><col width="12%"><col width="38%">
+        <thead>
+            <tr>
+                <th>Type</th><th>Objet</th><th>Date</th><th>Attestation</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar3_4_data %}
+            {% for item in ar3_4_data %}
+            <tr>
+                <td>{{ item.typeActivite | break_long_words }}</td>
+                <td class="text-long">{{ item.objet | break_long_words }}</td>
+                <td>{{ item.date | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+
+    <!-- AR4 - Rayonnement -->
+    <div class="section-header">
+        AR4 - Rayonnement
+    </div>
+
+    <!-- AR4-1 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 4-1 Animation de structures d'interaction avec le milieu socio-économique et organisation de manifestations scientifiques (séminaires, colloques, congrès, forums,…)</div>
+    <table class="data-table">
+        <col width="18%"><col width="14%"><col width="10%"><col width="10%"><col width="48%">
+        <thead>
+            <tr>
+                <th>Titre manif./animation</th><th>Lieu</th><th>Date</th><th>Rôle</th><th>Document</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar4_1_data %}
+            {% for item in ar4_1_data %}
+            <tr>
+                <td class="text-long">{{ item.titre | break_long_words }}</td>
+                <td>{{ item.lieu | break_long_words }}</td>
+                <td>{{ item.date | break_long_words }}</td>
+                <td>{{ item.role | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AR4-2 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 4-2 Expertise et valorisation d'actions et de travaux au profit du milieu socio-économique (organisations non gouvernementales, secteur privé, organismes internationaux, secteur public)</div>
+    <table class="data-table">
+        <col width="18%"><col width="18%"><col width="14%"><col width="10%"><col width="40%">
+        <thead>
+            <tr>
+                <th>Nature</th><th>Organisme</th><th>Lieu</th><th>Date</th><th>Document</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar4_2_data %}
+            {% for item in ar4_2_data %}
+            <tr>
+                <td>{{ item.nature | break_long_words }}</td>
+                <td>{{ item.organisme | break_long_words }}</td>
+                <td>{{ item.lieu | break_long_words }}</td>
+                <td>{{ item.date | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- AR4-3 -->
+    <div class="subsection-title" style="font-weight: bold; margin-top: 20px;">AR 4-3 Travaux de recherche et innovations (Dépôt de brevets au profit de l'établissement, conception de prototypes, incubation de projets de recherche et de développement, prix,…)</div>
+    <table class="data-table">
+        <col width="25%"><col width="25%"><col width="12%"><col width="38%">
+        <thead>
+            <tr>
+                <th>Type activité</th><th>Nature de l’activité</th><th>Date</th><th>Document</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if ar4_3_data %}
+            {% for item in ar4_3_data %}
+            <tr>
+                <td>{{ item.type_activite | break_long_words }}</td>
+                <td>{{ item.nature_activite | break_long_words }}</td>
+                <td>{{ item.date | break_long_words }}</td>
+                <td>{% if item.fichiers %}<a href="{{ url_for('static', filename=item.fichiers, _external=True) }}" style="color: blue; text-decoration: underline;">Voir</a>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align: center; font-style: italic; color: #999;">Aucune donnée</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div class="attestation">
+        Je soussigné(e), certifie l'exactitude des informations fournies dans ce document.
+    </div>
+
+    <table style="width: 100%; margin-top: 30px; border: none;">
+        <tr>
+            <td style="text-align: left; border: none; font-weight: bold;">Date: {{ now.strftime('%d/%m/%Y') }}</td>
+            <td style="text-align: right; border: none; font-weight: bold;">Signature de l'enseignant:</td>
+        </tr>
+    </table>
+
+</body>
+
+</html>

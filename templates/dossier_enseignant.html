@@ -1,0 +1,555 @@
+{% extends "base.html" %}
+{% block title %}Mon Dossier de Promotion{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/Style_enseignant.css') }}">
+<style>
+.doc-wrap {
+    max-width: 1100px; margin: 0 auto;
+}
+.doc-glass {
+    background: #F5F7FC;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.02);
+    padding: 40px;
+    margin-bottom: 24px; transition: box-shadow .3s;
+}
+.doc-glass:hover { box-shadow: 0 12px 50px rgba(0,0,0,.09); }
+.doc-title {
+    display:flex; align-items:center; gap:10px;
+    font-size: 15px; font-weight: 700; color: #0f172a;
+    padding-bottom: 10px; margin-bottom: 18px;
+    border-bottom: 2px solid #dbeafe;
+    text-transform: uppercase; letter-spacing: .5px;
+}
+.doc-title i { color: #3b82f6; font-size: 16px; }
+.doc-sub {
+    font-size: 13px; color: #64748b; margin-bottom: 20px;
+}
+.doc-badge {
+    padding: 5px 14px; border-radius: 30px; font-weight: 600;
+    font-size: 12px; display: inline-flex; align-items: center; gap: 6px;
+}
+.doc-badge-brouillon { background:#f1f5f9; color:#475569; }
+.doc-badge-soumis { background:#fef3c7; color:#92400e; }
+.doc-badge-accepte, .doc-badge-évalué { background:#f0fdf4; color:#166534; }
+.doc-badge-refuse, .doc-badge-rejeté { background:#fef2f2; color:#991b1b; }
+.doc-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 2px 16px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+.doc-label {
+    font-weight: 600; color: #64748b; font-size: 12px;
+    text-transform: uppercase; letter-spacing: .3px;
+}
+.doc-value { color:#0f172a; font-weight:500; min-width:0; word-break:break-word; overflow-wrap:break-word; }
+.doc-divider {
+    margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid #dbeafe;
+}
+.doc-actions {
+    display: flex; gap: 12px; margin-top: 24px;
+    flex-wrap: wrap; justify-content: center;
+}
+.doc-btn-pdf {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, #24A945, #1d8a38);
+    color: #fff; border: none;
+    padding: 14px 32px; border-radius: 30px;
+    font-size: 15px; font-weight: 700; letter-spacing: .3px;
+    box-shadow: 0 4px 14px rgba(36,169,69,.35);
+    transition: all .2s ease; cursor: pointer;
+}
+.doc-btn-pdf:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(36,169,69,.45); color:#fff; }
+.doc-btn-pdf i { font-size: 16px; }
+
+/* Upload rows */
+.upload-card {
+    background: #F5F7FC;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.06);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+}
+.upload-row {
+    display:flex; align-items:center; gap:16px;
+    padding:14px 18px;
+    background:rgba(248,250,252,.8);
+    border-radius:14px; margin-bottom:12px;
+    border:1px solid #dbeafe;
+    transition: all .25s ease;
+}
+.upload-row:last-child { margin-bottom:0; }
+.upload-row:hover { border-color:#93c5fd; background:#f8fafc; }
+.upload-icon {
+    width:44px; height:44px; border-radius:12px;
+    background:linear-gradient(135deg,#dbeafe,#f8faff);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.upload-icon i { font-size:1.2rem; color:#3b82f6; }
+.upload-info { flex:1; min-width:0; }
+.upload-name { font-weight:700; font-size:14px; color:#0f172a; }
+.upload-desc { font-size:12px; color:#64748b; }
+.upload-actions { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.upload-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 16px; border-radius:30px;
+    font-size:12px; font-weight:700; cursor:pointer;
+    transition:all .2s ease; border:none; margin:0;
+}
+.upload-btn-outline {
+    background:rgba(255,255,255,.9); color:#475569;
+    border:1.5px solid #e2e8f0;
+}
+.upload-btn-outline:hover { background:#f1f5f9; border-color:#cbd5e1; }
+.upload-btn-primary {
+    background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff;
+    box-shadow:0 4px 12px rgba(59,130,246,.25);
+}
+.upload-btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(59,130,246,.35); }
+.upload-signed {
+    font-size:11px; color:#10b981; font-weight:700; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:4px;
+}
+.upload-view {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:6px 14px; border-radius:30px;
+    font-size:11px; font-weight:700;
+    background:#fef2f2; color:#dc2626;
+    border:1px solid #fecaca; text-decoration:none;
+    transition:all .2s ease;
+}
+.upload-view:hover { background:#fee2e2; color:#991b1b; text-decoration:none; }
+
+/* Empty state */
+.doc-empty {
+    text-align:center; padding:48px 24px;
+    max-width:520px; margin:0 auto;
+}
+.doc-empty i { font-size:2.8rem; color:#3b82f6; opacity:.5; margin-bottom:16px; }
+.doc-empty h4 { font-weight:700; font-size:17px; color:#0f172a; margin-bottom:8px; }
+.doc-empty p { font-size:13px; color:#64748b; margin:0; }
+
+/* Responsive — same layout approach as Déposer un Dossier */
+@media (max-width: 768px) {
+    .doc-row { grid-template-columns: 1fr; gap: 0; margin-bottom: 12px; }
+    .doc-label { font-size: 11px; }
+    .doc-value { font-size: 13px; }
+    .doc-glass { padding: 20px; border-radius: 12px; }
+    .doc-title { font-size: 13px; }
+    .doc-actions { flex-direction: column; align-items: stretch; }
+    .doc-btn-pdf { width: 100%; justify-content: center; }
+    .upload-card { padding: 20px; }
+    .upload-row { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+    .upload-info { flex: 1 1 100%; }
+    .upload-actions { flex: 1; justify-content: flex-end; }
+    /* Modal responsive */
+    .custom-modal-content { width:100%; height:100%; border-radius:0; max-width:none; }
+    .custom-tabs { flex-direction: column; padding: 10px; }
+    .tab-btn { margin: 4px 0; padding: 12px; justify-content:center; }
+    .tab-info { display:none; }
+    .custom-modal-header { padding: 14px 18px; }
+    .custom-modal-header .header-text h3 { font-size: 1rem; }
+    .custom-modal-header .header-text p, .footer-note { display:none; }
+    .custom-modal-footer { flex-direction: column; gap: 8px; padding: 12px 18px; }
+    .btn-close-modal { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="banner-primary">
+    <div class="banner-glow"></div>
+    <h1><i class="fas fa-file-alt me-2"></i>DOCUMENTS ANNEXES</h1>
+    <p>Consultation des documents officiels</p>
+</div>
+
+<div class="doc-wrap">{% if dossier %}
+<div class="doc-glass">
+    <!-- Statut -->
+    <div class="doc-row">
+        <div class="doc-label">Statut actuel</div>
+        <div class="doc-value">
+            {% if dossier.statut == 'brouillon' %}
+            <span class="doc-badge doc-badge-brouillon"><i class="fas fa-edit"></i> Brouillon</span>
+            {% elif dossier.statut == 'soumis' %}
+            <span class="doc-badge doc-badge-soumis"><i class="fas fa-paper-plane"></i> Soumis</span>
+            {% elif dossier.statut in ('accepte', 'évalué') %}
+            <span class="doc-badge doc-badge-accepte"><i class="fas fa-check-circle"></i> {{ dossier.statut|capitalize }}</span>
+            {% elif dossier.statut in ('refuse', 'rejeté') %}
+            <span class="doc-badge doc-badge-refuse"><i class="fas fa-times-circle"></i> Refusé</span>
+            {% else %}
+            <span class="doc-badge doc-badge-brouillon">{{ dossier.statut|title }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="doc-row">
+        <div class="doc-label">Année académique</div>
+        <div class="doc-value">{{ dossier.annee or 'Non spécifiée' }}</div>
+    </div>
+
+    {% if dossier.date_soumission %}
+    <div class="doc-row">
+        <div class="doc-label">Date de soumission</div>
+        <div class="doc-value">{{ dossier.date_soumission.strftime('%d/%m/%Y à %H:%M') }}</div>
+    </div>
+    {% endif %}
+
+    <div class="doc-divider">
+        <div class="doc-title"><i class="fas fa-user-circle"></i>Informations personnelles</div>
+        <div class="doc-row">
+            <div class="doc-label">Nom complet</div>
+            <div class="doc-value">{{ enseignant.nom }} {{ enseignant.prenom }}</div>
+        </div>
+        <div class="doc-row">
+            <div class="doc-label">Département</div>
+            <div class="doc-value">{{ enseignant.departement or '—' }}</div>
+        </div>
+        <div class="doc-row">
+            <div class="doc-label">Grade</div>
+            <div class="doc-value">{{ enseignant.grade or '—' }}</div>
+        </div>
+        <div class="doc-row">
+            <div class="doc-label">PPR</div>
+            <div class="doc-value">{{ enseignant.ppr or '—' }}</div>
+        </div>
+    </div>
+
+    <div class="doc-actions">
+        {% if dossier.statut in ['soumis', 'accepte', 'refuse'] %}
+        <button class="doc-btn-pdf" onclick="ouvrirModalPDFs({{ dossier.id }})">
+            <i class="fas fa-file-pdf"></i> Consulter le dossier complet
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+{% else %}
+<div class="doc-glass">
+    <div class="doc-empty">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h4>Vous n'avez pas déposé de dossier</h4>
+        <p>Veuillez créer un dossier depuis la page "Déposer un Dossier".</p>
+    </div>
+</div>
+{% endif %}
+</div>
+
+<!-- Styles pour la Modale Personnalisée -->
+<style>
+    .custom-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15,23,42,.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        opacity: 0;
+        transition: opacity .3s ease;
+    }
+    .custom-modal-overlay.active {
+        display: flex;
+        opacity: 1;
+    }
+    .custom-modal-content {
+        background: #F5F7FC;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        width: 92%;
+        max-width: 1200px;
+        height: 90vh;
+        border-radius: 24px;
+        box-shadow: 0 32px 80px rgba(15,23,42,.2), 0 0 0 1px rgba(255,255,255,.5);
+        display: flex;
+        flex-direction: column;
+        transform: scale(.92);
+        transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+        overflow: hidden;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        border: 1px solid rgba(255,255,255,.6);
+    }
+    .custom-modal-overlay.active .custom-modal-content { transform: scale(1); }
+    .custom-modal-header {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+    .custom-modal-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%);
+    }
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        z-index: 1;
+    }
+    .header-icon {
+        width: 44px; height: 44px;
+        background: rgba(255,255,255,.12);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        backdrop-filter: blur(10px);
+    }
+    .header-text h3 { margin:0; font-size:1.15rem; font-weight:800; letter-spacing:-.2px; }
+    .header-text p { margin:0; font-size:.8rem; opacity:.8; }
+    .close-btn {
+        background: rgba(255,255,255,.1);
+        border: none; color: #fff;
+        font-size: 20px; cursor: pointer;
+        transition: all .25s ease; z-index:1;
+        width: 36px; height: 36px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 12px;
+    }
+    .close-btn:hover { background:rgba(255,255,255,.2); transform:rotate(90deg); }
+    .custom-modal-body {
+        flex:1; display:flex; flex-direction:column;
+        background: #f8fafc; overflow:hidden;
+    }
+    .custom-tabs {
+        display:flex; background:rgba(255,255,255,.6);
+        backdrop-filter:blur(8px);
+        padding:0 20px; gap:4px;
+        border-bottom:1px solid rgba(226,232,240,.6);
+    }
+    .tab-btn {
+        flex:1; padding:18px 20px; border:1px solid #e2e8f0;
+        background: #F5F7FC; cursor:pointer;
+        display:flex; align-items:center; gap:12px;
+        position:relative; color:#64748b;
+        transition:all .25s ease; text-align:left;
+        border-radius:14px; margin:10px 4px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.04);
+    }
+    .tab-btn:hover {
+        border-color:#93c5fd; box-shadow:0 4px 16px rgba(59,130,246,0.08);
+        transform:translateY(-1px);
+    }
+    .tab-btn.active {
+        color:#0f172a; background: #F5F7FC;
+        border-color:#3b82f6;
+        box-shadow:0 4px 20px rgba(59,130,246,0.15);
+        transform:translateY(-1px);
+    }
+    .tab-icon-box {
+        width:40px; height:40px;
+        background:rgba(59,130,246,.08); border-radius:12px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:16px; transition:all .3s ease; flex-shrink:0;
+    }
+    .tab-btn.active .tab-icon-box {
+        background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff; transform:scale(1.08);
+        box-shadow:0 4px 12px rgba(59,130,246,.3);
+    }
+    .tab-info { display:flex; flex-direction:column; }
+    .tab-title { font-weight:700; font-size:.9rem; }
+    .tab-desc { font-size:.72rem; opacity:.65; }
+    .tab-content-area { flex:1; padding:20px; position:relative; overflow:hidden; }
+    .tab-pane {
+        display:none; width:100%; height:100%;
+        background:rgba(255,255,255,.8); border-radius:14px;
+        overflow:hidden; animation:tabFade .3s ease;
+    }
+    .tab-pane.active { display:block; }
+    .annexe-download-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 60px 40px;
+        text-align: center;
+    }
+    .annexe-download-card i.fa-file-pdf {
+        font-size: 64px;
+        color: #dc2626;
+        margin-bottom: 8px;
+    }
+    .annexe-download-card h3 {
+        margin: 0;
+        color: #1e293b;
+        font-size: 20px;
+    }
+    .annexe-download-card p {
+        margin: 0;
+        color: #64748b;
+    }
+    @keyframes tabFade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .pdf-frame { width:100%; height:100%; border:none; }
+    .loading-overlay {
+        position:absolute; inset:0;
+        background:rgba(255,255,255,.9);
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center;
+        z-index:10; gap:12px;
+    }
+    .spinner {
+        width:36px; height:36px;
+        border:3px solid #e2e8f0;
+        border-top:3px solid #3b82f6;
+        border-radius:50%;
+        animation:spin 1s linear infinite;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .custom-modal-footer {
+        padding:14px 30px;
+        border-top:1px solid rgba(226,232,240,.8);
+        display:flex; justify-content:space-between; align-items:center;
+        background:rgba(255,255,255,.6);
+        backdrop-filter:blur(12px);
+    }
+    .footer-note { font-size:.82rem; color:#64748b; display:flex; align-items:center; gap:6px; }
+    .btn-close-modal {
+        padding:8px 22px;
+        background:rgba(255,255,255,.8); border:1.5px solid #e2e8f0;
+        border-radius:30px; color:#475569;
+        font-weight:700; font-size:13px; cursor:pointer;
+        transition:all .2s ease; display:flex; align-items:center; gap:6px;
+    }
+    .btn-close-modal:hover { background:#f1f5f9; border-color:#cbd5e1; transform:translateY(-1px); }
+    </style>
+
+<!-- Structure HTML de la Modale Personnalisée -->
+<div id="customModal" class="custom-modal-overlay">
+    <div class="custom-modal-content">
+        <div class="custom-modal-header">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="header-text">
+                    <h3>Dossier Complet de Promotion</h3>
+                    <p>Consultation des annexes officielles</p>
+                </div>
+            </div>
+            <button class="close-btn" onclick="fermerModalPDFs()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="custom-modal-body">
+            <div class="custom-tabs">
+                <button class="tab-btn active" onclick="switchTab(1)">
+                    <div class="tab-icon-box"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="tab-info">
+                        <span class="tab-title">Annexe I</span>
+                        <span class="tab-desc">AE - Activités d'Enseignement</span>
+                    </div>
+                </button>
+                <button class="tab-btn" onclick="switchTab(2)">
+                    <div class="tab-icon-box"><i class="fas fa-tasks"></i></div>
+                    <div class="tab-info">
+                        <span class="tab-title">Annexe II</span>
+                        <span class="tab-desc">AR - Activités de Recherche</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="tab-content-area">
+                <div id="tab-content-1" class="tab-pane active">
+                    <div class="annexe-download-card">
+                        <i class="fas fa-file-pdf"></i>
+                        <h3>Annexe I</h3>
+                        <p>AE - Activités d'Enseignement</p>
+                        <button class="doc-btn-pdf" onclick="telechargerAnnexe(1)">
+                            <i class="fas fa-download"></i> Télécharger l'Annexe I
+                        </button>
+                    </div>
+                </div>
+                <div id="tab-content-2" class="tab-pane">
+                    <div class="annexe-download-card">
+                        <i class="fas fa-file-pdf"></i>
+                        <h3>Annexe II</h3>
+                        <p>AR - Activités de Recherche</p>
+                        <button class="doc-btn-pdf" onclick="telechargerAnnexe(2)">
+                            <i class="fas fa-download"></i> Télécharger l'Annexe II
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="custom-modal-footer">
+            <div class="footer-note">
+                <i class="fas fa-info-circle"></i>
+                <span>Les PDFs sont générés dynamiquement à partir de vos données</span>
+            </div>
+            <button class="btn-close-modal" onclick="fermerModalPDFs()">
+                Fermer
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentDossierId = null;
+
+    function ouvrirModalPDFs(dossierId) {
+        currentDossierId = dossierId;
+        const modal = document.getElementById('customModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        switchTab(1);
+    }
+
+    function fermerModalPDFs() {
+        const modal = document.getElementById('customModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function switchTab(tabIndex) {
+        document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+            btn.classList.toggle('active', index + 1 === tabIndex);
+        });
+
+        document.querySelectorAll('.tab-pane').forEach((pane, index) => {
+            pane.classList.toggle('active', index + 1 === tabIndex);
+        });
+    }
+
+    function telechargerAnnexe(num) {
+        window.open(`/api/generer-pdf-annexe/${num}/${currentDossierId}?t=${Date.now()}`, '_blank');
+    }
+
+    document.getElementById('customModal').addEventListener('click', function (e) {
+        if (e.target === this) fermerModalPDFs();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.getElementById('customModal').classList.contains('active')) {
+            fermerModalPDFs();
+        }
+    });
+</script>
+{% endblock %}

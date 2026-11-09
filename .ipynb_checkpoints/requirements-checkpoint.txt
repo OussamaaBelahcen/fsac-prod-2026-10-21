@@ -1,0 +1,6 @@
+Flask==3.0.3
+Flask-MySQLdb
+bcrypt
+python-dotenv
+mysqlclient
+Werkzeug

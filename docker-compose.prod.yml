@@ -1,0 +1,93 @@
+services:
+  db:
+    image: mysql:5.7
+    container_name: fsac_mysql_prod
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB:-Fsac}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data_prod:/var/lib/mysql
+      - ./shema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "127.0.0.1:3306:3306"   # MySQL uniquement accessible en local
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fsac_network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: fsac_web_prod
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    # Flask/Gunicorn n'est PAS exposé directement — Nginx s'en charge
+    expose:
+      - "5000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DB:-Fsac}
+      - FLASK_ENV=production
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_ROLE=SUPERADMIN
+      - ADMIN_FIRSTNAME=${ADMIN_FIRSTNAME:-Admin}
+      - ADMIN_LASTNAME=${ADMIN_LASTNAME:-System}
+      # Indique à Flask qu'il est derrière un proxy (pour url_for avec https)
+      - PREFERRED_URL_SCHEME=https
+    volumes:
+      - static_files:/app/static
+    networks:
+      - fsac_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: fsac_nginx_prod
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "80:80"    # HTTP → redirigé vers HTTPS
+      - "443:443"  # HTTPS
+    volumes:
+      # Configuration Nginx
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Certificats SSL (Let's Encrypt en prod, auto-signé en dev)
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      # Fichiers statiques partagés avec Flask
+      - static_files:/app/static:ro
+      # Pour le renouvellement Let's Encrypt (certbot)
+      - certbot_www:/var/www/certbot:ro
+    networks:
+      - fsac_network
+
+  # Optionnel : renouvellement automatique des certificats Let's Encrypt
+  certbot:
+    image: certbot/certbot
+    container_name: fsac_certbot
+    volumes:
+      - ./nginx/ssl:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    # Renouvelle uniquement si nécessaire (à lancer via cron ou manuellement)
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    profiles:
+      - certbot   # Activé uniquement avec : docker compose --profile certbot up
+
+volumes:
+  db_data_prod:
+  static_files:
+  certbot_www:
+
+networks:
+  fsac_network:
+    driver: bridge

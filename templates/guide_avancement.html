@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}Grille d'Avancement - FSAC{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guide-wrapper {
+        max-width: 960px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+    .guide-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 8px 40px rgba(0,0,0,.08);
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+    }
+    .guide-header {
+        background: linear-gradient(135deg, #0B162C 0%, #043775 50%, #0258b3 100%);
+        color: white;
+        padding: 32px 36px;
+        text-align: center;
+    }
+    .guide-header h1 {
+        margin: 0 0 8px;
+        font-size: 20px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+    .guide-header p {
+        margin: 0;
+        font-size: 13px;
+        color: rgba(255,255,255,.75);
+        line-height: 1.5;
+    }
+    .guide-body {
+        padding: 36px;
+    }
+    .guide-body h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0B162C;
+        margin: 0 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .guide-body h2 i {
+        color: #0B162C;
+    }
+    .pdf-viewer {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 24px;
+        background: #f8fafc;
+    }
+    .pdf-viewer object,
+    .pdf-viewer iframe {
+        width: 100%;
+        height: 600px;
+        border: none;
+    }
+    .pdf-viewer .pdf-fallback {
+        padding: 60px 20px;
+        text-align: center;
+        color: #64748b;
+    }
+    .pdf-viewer .pdf-fallback i {
+        font-size: 48px;
+        color: #dc3545;
+        margin-bottom: 16px;
+        opacity: .7;
+    }
+    .pdf-viewer .pdf-fallback h4 {
+        font-size: 16px;
+        margin: 0 0 8px;
+        color: #1e293b;
+    }
+    .pdf-viewer .pdf-fallback p {
+        font-size: 13px;
+        margin: 0 0 20px;
+    }
+    .download-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background: linear-gradient(135deg, #0B162C, #043775);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all .25s cubic-bezier(.16,1,.3,1);
+        box-shadow: 0 4px 16px rgba(11,22,44,.2);
+    }
+    .download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(11,22,44,.3);
+        color: white;
+    }
+    .accept-section {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .accept-section input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: #0B162C;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .accept-section label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1e293b;
+        cursor: pointer;
+        line-height: 1.4;
+        margin: 0;
+    }
+    .btn-continue {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 36px;
+        background: linear-gradient(135deg, #0B162C, #043775);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .25s cubic-bezier(.16,1,.3,1);
+        box-shadow: 0 4px 20px rgba(11,22,44,.2);
+        letter-spacing: .3px;
+    }
+    .btn-continue:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(11,22,44,.3);
+    }
+    .btn-continue:disabled {
+        opacity: .4;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    .btn-continue i {
+        font-size: 14px;
+    }
+    @media (max-width: 768px) {
+        .guide-body { padding: 20px; }
+        .guide-header { padding: 24px 20px; }
+        .guide-header h1 { font-size: 16px; }
+        .pdf-viewer object,
+        .pdf-viewer iframe { height: 400px; }
+        .accept-section { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 576px) {
+        .guide-wrapper { margin: 16px auto; padding: 0 12px; }
+        .pdf-viewer object,
+        .pdf-viewer iframe { height: 300px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guide-wrapper">
+    <div class="guide-card">
+        <div class="guide-header">
+            <h1><i class="fas fa-file-pdf me-2"></i>Guide — Grille d'Avancement FSAC</h1>
+            <p>Veuillez consulter la grille d'avancement avant de remplir votre dossier.</p>
+        </div>
+        <div class="guide-body">
+            <h2><i class="fas fa-book-open"></i> Aperçu du document</h2>
+
+            <div class="pdf-viewer">
+                <object data="{{ url_for('static', filename='uploads/GuideGrille/Guide-Grille-Avancement-FSAC.pdf') }}#toolbar=1&navpanes=1&scrollbar=1" type="application/pdf">
+                    <iframe src="{{ url_for('static', filename='uploads/GuideGrille/Guide-Grille-Avancement-FSAC.pdf') }}#toolbar=1&navpanes=1&scrollbar=1">
+                        <div class="pdf-fallback">
+                            <i class="fas fa-file-pdf"></i>
+                            <h4>Votre navigateur ne peut pas afficher le PDF</h4>
+                            <p>Utilisez le bouton ci-dessous pour télécharger le document.</p>
+                            <a href="{{ url_for('static', filename='uploads/GuideGrille/Guide-Grille-Avancement-FSAC.pdf') }}" download class="download-btn">
+                                <i class="fas fa-download"></i> Télécharger le PDF
+                            </a>
+                        </div>
+                    </iframe>
+                </object>
+            </div>
+
+            <div style="text-align:center; margin-bottom:24px;">
+                <a href="{{ url_for('static', filename='uploads/GuideGrille/Guide-Grille-Avancement-FSAC.pdf') }}" download class="download-btn">
+                    <i class="fas fa-download"></i> Télécharger le PDF
+                </a>
+            </div>
+
+            <div class="accept-section">
+                <input type="checkbox" id="acceptCheck">
+                <label for="acceptCheck">J'ai lu et j'accepte les termes de la grille d'avancement</label>
+            </div>
+
+            <div style="text-align:center;">
+                <button id="btnContinue" class="btn-continue" disabled>
+                    <i class="fas fa-arrow-right"></i> <span>Continuer vers mon dossier</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const check = document.getElementById('acceptCheck');
+    const btn = document.getElementById('btnContinue');
+
+    check.addEventListener('change', function() {
+        btn.disabled = !this.checked;
+    });
+
+    btn.addEventListener('click', async function() {
+        if (!check.checked) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Chargement...</span>';
+        try {
+            const r = await fetch('/api/accept-guide', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accepted: true })
+            });
+            const res = await r.json();
+            if (res.success && res.redirect) {
+                window.location.href = res.redirect;
+            } else {
+                alert(res.message || 'Erreur lors de l\'acceptation.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-arrow-right"></i> <span>Continuer vers mon dossier</span>';
+            }
+        } catch(e) {
+            alert('Erreur de connexion au serveur.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-arrow-right"></i> <span>Continuer vers mon dossier</span>';
+        }
+    });
+</script>
+{% endblock %}

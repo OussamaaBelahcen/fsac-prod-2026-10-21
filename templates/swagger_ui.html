@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}API Explorer (Swagger) - FSAC{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/swagger-ui/swagger-ui.css') }}">
+
+<div class="container mt-3" style="max-width: 1200px;">
+    <div style="background:#f8f4ff;border:1px solid #e0d6f2;border-radius:12px;padding:14px 18px;margin-bottom:14px;">
+        <h4 style="margin:0 0 6px 0;color:#4a3f6b;">
+            <i class="fas fa-code"></i> API Explorer — OpenAPI / Swagger
+        </h4>
+        <p style="margin:0;color:#64748b;font-size:13px;line-height:1.55;">
+            documentation générée automatiquement depuis les routes de l'application + annotations
+            <code>swagger_doc.py</code>.<br>
+            <strong>Test d'exécution :</strong> le cookie de session est envoyé automatiquement avec
+            chaque requête (« Try it out ») — vous testez l'API comme <em>{{ session.get('email') }}</em>
+            (rôle <strong>{{ session.get('role') }}</strong>). Un <code>403</code> sur un endpoint
+            réservé à un autre rôle est <strong>comportement normal</strong> (il suffit de se
+            connecter avec le bon compte puis de revenir sur cette page).
+            <br><strong>Attention :</strong> certaines opérations sont mutantes (création /
+            suppression de comptes, soumission, évaluation de dossiers…).
+        </p>
+    </div>
+    <div id="swagger-ui-container"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='vendor/swagger-ui/swagger-ui-bundle.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ui = SwaggerUIBundle({
+            url: '{{ url_for("openapi_spec") }}',
+            dom_id: '#swagger-ui-container',
+            tagsSorter: 'alpha',
+            operationsSorter: 'alpha',
+            docExpansion: 'none',
+            tryItOutEnabled: true,
+            displayRequestDuration: true,
+            withCredentials: true,
+            filter: true,
+            persistAuthorization: true
+        });
+        window.__FSAC_SWAGGER = ui;
+    });
+</script>
+{% endblock %}

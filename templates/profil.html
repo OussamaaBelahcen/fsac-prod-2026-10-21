@@ -1,0 +1,699 @@
+{% extends "base.html" %}
+{% block title %}Mon Profil{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/Style_enseignant.css') }}">
+<style>
+    :root { --primary: #0B162C; --primary-hover: #1a2d5a; }
+
+    .admin-card {
+        background: #F5F7FC;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 25px;
+        border: 1px solid #eef1f5;
+        overflow: hidden;
+    }
+    .admin-card-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid #eef1f5;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #fafbfc;
+    }
+    .admin-card-header h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .admin-card-header i {
+        color: #3b82f6;
+        font-size: 18px;
+    }
+    .admin-card-body {
+        padding: 24px;
+        background: #F5F7FC;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        font-size: 13px;
+        color: #495057;
+        margin-bottom: 6px;
+    }
+    .form-control-readonly {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        padding: 12px 14px;
+        border-radius: 8px;
+        width: 100%;
+        font-size: 14px;
+        color: #212529;
+        font-weight: 500;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+    .form-control-readonly:hover {
+        border-color: #ced4da;
+    }
+
+    .password-section {
+        margin-top: 30px;
+        padding-top: 24px;
+        border-top: 2px solid #eef1f5;
+    }
+
+    .btn-toggle-pwd {
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(11, 22, 44, 0.2);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-toggle-pwd:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(11, 22, 44, 0.3);
+    }
+    .btn-toggle-pwd.btn-cancel {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.2);
+    }
+    .btn-toggle-pwd.btn-cancel:hover {
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+    }
+
+    .password-form {
+        background: #f8f9fa;
+        border: 1px solid #eef1f5;
+        border-radius: 12px;
+        padding: 28px;
+        margin-top: 20px;
+        display: none;
+        animation: slideDown 0.25s ease-out;
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .password-form.visible {
+        display: block;
+    }
+    .password-form h5 {
+        margin: 0 0 20px;
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .password-form .form-control {
+        width: 100%;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        background: #F5F7FC;
+        box-sizing: border-box;
+    }
+    .password-form .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(11, 22, 44, 0.1);
+        outline: none;
+    }
+    .password-form .form-group {
+        margin-bottom: 18px;
+    }
+
+    .btn-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+    }
+    .btn-submit-pwd {
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: white;
+        border: none;
+        padding: 11px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-submit-pwd:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 97, 202, 0.3);
+    }
+    .btn-cancel-pwd {
+        background: transparent;
+        color: #6c757d;
+        border: 2px solid #d0d5dd;
+        padding: 11px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-cancel-pwd:hover {
+        background: #f1f3f5;
+        border-color: #adb5bd;
+    }
+
+    .toast-profil {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 100000;
+        padding: 14px 28px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        transition: opacity .3s ease, transform .3s cubic-bezier(.16,1,.3,1);
+        pointer-events: none;
+        border-left: 4px solid rgba(255,255,255,.3);
+        backdrop-filter: blur(8px);
+    }
+    .toast-profil.toast-success { background: #16a34a; color: #fff; }
+    .toast-profil.toast-error { background: #dc2626; color: #fff; }
+    @keyframes toastIn {
+        from { transform: translateX(40px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    .password-requirements {
+        margin-top: 10px;
+        padding: 12px;
+        background: #F5F7FC;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        font-size: 13px;
+    }
+    .requirement {
+        margin: 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #6c757d;
+        transition: color 0.3s;
+    }
+    .requirement.valid { color: #16a34a; }
+    .requirement.invalid { color: #dc2626; }
+    .requirement i { font-size: 6px; }
+
+    .invalid-feedback {
+        color: #dc2626;
+        font-size: 13px;
+        margin-top: 4px;
+        display: none;
+    }
+    .invalid-feedback.show { display: block; }
+    .form-control.is-invalid { border-color: #dc2626 !important; }
+    .form-control.is-valid { border-color: #16a34a !important; }
+
+    @media (max-width: 768px) {
+        .banner-primary { padding: 24px; }
+        .admin-card-body { padding: 16px; }
+        .form-grid { grid-template-columns: 1fr; }
+    }
+
+
+    .grade-modal-overlay.active {
+        display: flex;
+    }
+    @keyframes gradeModalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .grade-modal-box {
+        background: rgba(255,255,255,.96);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-radius: 24px;
+        width: 480px;
+        max-width: 94%;
+        box-shadow: 0 32px 80px rgba(15,23,42,.25), 0 0 0 1px rgba(255,255,255,.5);
+        overflow: hidden;
+        animation: gradeModalSlideUp .4s cubic-bezier(.16,1,.3,1);
+    }
+    @keyframes gradeModalSlideUp {
+        from { opacity: 0; transform: translateY(30px) scale(.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .grade-modal-header {
+        background: linear-gradient(135deg, #0B162C 0%, #1a2d5a 100%);
+        padding: 20px 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .grade-modal-header h3 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -.2px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .grade-modal-header h3 i {
+        background: rgba(255,255,255,.12);
+        padding: 8px;
+        border-radius: 12px;
+        font-size: 16px;
+    }
+    .grade-modal-close {
+        background: rgba(255,255,255,.1);
+        border: none;
+        color: rgba(255,255,255,.7);
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all .2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .grade-modal-close:hover {
+        background: rgba(255,255,255,.2);
+        color: #fff;
+        transform: scale(1.1) rotate(90deg);
+    }
+    .grade-modal-body {
+        padding: 28px 28px 8px;
+    }
+    .grade-modal-body label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        color: #475569;
+        margin-bottom: 8px;
+    }
+    .grade-modal-body select {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+        border: 2px solid #e2e8f0;
+        border-radius: 14px;
+        background: #f8fafc;
+        color: #1e293b;
+        font-weight: 500;
+        transition: all .25s cubic-bezier(.16,1,.3,1);
+        outline: none;
+        box-sizing: border-box;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23636ed1' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+    }
+    .grade-modal-body select:focus {
+        border-color: #6366f1;
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+    }
+    .grade-modal-info {
+        background: linear-gradient(135deg, #f0f4ff, #eef2ff);
+        border: 1px solid #c7d2fe;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: #4338ca;
+        font-weight: 500;
+    }
+    .grade-modal-info i {
+        font-size: 16px;
+        color: #6366f1;
+    }
+    .grade-modal-footer {
+        padding: 16px 28px 24px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    .grade-modal-footer .btn {
+        padding: 11px 24px;
+        border: none;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .25s cubic-bezier(.16,1,.3,1);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .grade-modal-footer .btn-cancel {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1.5px solid #e2e8f0;
+    }
+    .grade-modal-footer .btn-cancel:hover {
+        background: #e2e8f0;
+        border-color: #cbd5e1;
+    }
+    .grade-modal-footer .btn-save {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(99,102,241,.3);
+    }
+    .grade-modal-footer .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(99,102,241,.4);
+    }
+    .grade-modal-footer .btn-save:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .pwd-input-wrap {
+        position: relative;
+    }
+    .pwd-input-wrap .form-control {
+        padding-right: 44px;
+    }
+    .pwd-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #94a3b8;
+        font-size: 16px;
+        padding: 4px;
+        transition: color .2s;
+        z-index: 2;
+    }
+    .pwd-toggle:hover {
+        color: #475569;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="banner-primary">
+    <div class="banner-glow"></div>
+    <h1>MON PROFIL</h1>
+    <p>Gérez vos informations personnelles et votre mot de passe</p>
+</div>
+
+<div class="admin-card">
+    <div class="admin-card-header" style="border-left:4px solid #3b82f6;">
+        <i class="fas fa-id-card"></i>
+        <h5>Informations Personnelles</h5>
+    </div>
+    <div class="admin-card-body">
+        <div class="form-grid">
+            <div class="form-group">
+                <label><i class="fas fa-user me-1"></i>Nom</label>
+                <div class="form-control-readonly">{{ user.nom or enseignant_data.nom or '—' }}</div>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-user me-1"></i>Prénom</label>
+                <div class="form-control-readonly">{{ user.prenom or enseignant_data.prenom or '—' }}</div>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-envelope me-1"></i>Email</label>
+                <div class="form-control-readonly">{{ user.email_user }}</div>
+            </div>
+            {% if enseignant_data or role == 'COMMISSION' %}
+            <div class="form-group">
+                <label><i class="fas fa-graduation-cap me-1"></i>Grade</label>
+                <div class="form-control-readonly">{{ enseignant_data.grade or commission_grade or '—' }}</div>
+            </div>
+            {% endif %}
+            {% if enseignant_data %}
+            <div class="form-group">
+                <label><i class="fas fa-building me-1"></i>Département</label>
+                <div class="form-control-readonly">{{ enseignant_data.departement or '—' }}</div>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-id-badge me-1"></i>PPR</label>
+                <div class="form-control-readonly">{{ enseignant_data.ppr or '—' }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="password-section">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+                <h5 style="margin:0;font-weight:700;color:#2c3e50;font-size:15px;display:flex;align-items:center;gap:8px;">
+                    <i class="fas fa-shield-alt" style="color:#3b82f6;"></i>Sécurité
+                </h5>
+                <button id="togglePasswordForm" class="btn-toggle-pwd">
+                    <i class="fas fa-key"></i>Modifier le mot de passe
+                </button>
+            </div>
+
+            <div id="passwordForm" class="password-form">
+                <h5><i class="fas fa-lock"></i>Changer votre mot de passe</h5>
+
+                <div class="form-group">
+                    <label for="old_password">Ancien mot de passe</label>
+                    <div class="pwd-input-wrap">
+                        <input type="password" id="old_password" class="form-control" placeholder="Entrez votre ancien mot de passe">
+                        <button type="button" class="pwd-toggle" onclick="togglePwd('old_password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="new_password">Nouveau mot de passe</label>
+                    <div class="pwd-input-wrap">
+                        <input type="password" id="new_password" class="form-control" placeholder="Minimum 8 caractères">
+                        <button type="button" class="pwd-toggle" onclick="togglePwd('new_password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="password-feedback" class="invalid-feedback"></div>
+                    <div class="password-requirements">
+                        <div class="requirement" id="req-length"><i class="fas fa-circle"></i> Au moins 8 caractères</div>
+                        <div class="requirement" id="req-uppercase"><i class="fas fa-circle"></i> Une lettre majuscule</div>
+                        <div class="requirement" id="req-number"><i class="fas fa-circle"></i> Un chiffre</div>
+                        <div class="requirement" id="req-special"><i class="fas fa-circle"></i> Un caractère spécial (!@#$%...)</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirmer le nouveau mot de passe</label>
+                    <div class="pwd-input-wrap">
+                        <input type="password" id="confirm_password" class="form-control" placeholder="Confirmez le nouveau mot de passe">
+                        <button type="button" class="pwd-toggle" onclick="togglePwd('confirm_password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="confirm-feedback" class="invalid-feedback"></div>
+                </div>
+
+                <div class="btn-actions">
+                    <button id="savePassword" class="btn-submit-pwd">
+                        <i class="fas fa-check"></i>Enregistrer
+                    </button>
+                    <button id="cancelPassword" class="btn-cancel-pwd">
+                        <i class="fas fa-times"></i>Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let toastTimeout = null;
+
+    function togglePwd(id, btn) {
+        const inp = document.getElementById(id);
+        const icon = btn.querySelector('i');
+        if (inp.type === 'password') { inp.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
+        else { inp.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
+    }
+
+    function showToast(msg, type) {
+        if (toastTimeout) { clearTimeout(toastTimeout); toastTimeout = null; }
+        let el = document.querySelector('.toast-profil');
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'toast-profil';
+            document.body.appendChild(el);
+        }
+        el.className = 'toast-profil toast-' + (type || 'success');
+        el.textContent = msg;
+        el.style.opacity = '1';
+        el.style.transform = 'translateX(0)';
+        toastTimeout = setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(40px)';
+            setTimeout(() => {
+                if (el.parentNode) el.parentNode.removeChild(el);
+                toastTimeout = null;
+            }, 300);
+        }, 3000);
+    }
+
+    function validatePassword(password) {
+        return {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;'`~]/.test(password)
+        };
+    }
+
+    function updatePasswordRequirements(password) {
+        const reqs = validatePassword(password);
+        document.getElementById('req-length').className = 'requirement ' + (reqs.length ? 'valid' : 'invalid');
+        document.getElementById('req-uppercase').className = 'requirement ' + (reqs.uppercase ? 'valid' : 'invalid');
+        document.getElementById('req-number').className = 'requirement ' + (reqs.number ? 'valid' : 'invalid');
+        document.getElementById('req-special').className = 'requirement ' + (reqs.special ? 'valid' : 'invalid');
+
+        const allValid = reqs.length && reqs.uppercase && reqs.number && reqs.special;
+        const inp = document.getElementById('new_password');
+        const fb = document.getElementById('password-feedback');
+
+        if (password.length > 0) {
+            if (allValid) { inp.classList.remove('is-invalid'); inp.classList.add('is-valid'); fb.classList.remove('show'); }
+            else {
+                inp.classList.remove('is-valid'); inp.classList.add('is-invalid');
+                if (!reqs.length) fb.textContent = 'Le mot de passe doit contenir au moins 8 caractères.';
+                else if (!reqs.uppercase) fb.textContent = 'Le mot de passe doit contenir une lettre majuscule.';
+                else if (!reqs.number) fb.textContent = 'Le mot de passe doit contenir un chiffre.';
+                else fb.textContent = 'Le mot de passe doit contenir un caractère spécial.';
+                fb.classList.add('show');
+            }
+        } else { inp.classList.remove('is-invalid', 'is-valid'); fb.classList.remove('show'); }
+        return allValid;
+    }
+
+    document.getElementById('new_password').addEventListener('input', function () {
+        updatePasswordRequirements(this.value);
+        if (document.getElementById('confirm_password').value.length > 0) validateConfirmPassword();
+    });
+
+    function validateConfirmPassword() {
+        const pw = document.getElementById('new_password').value;
+        const cp = document.getElementById('confirm_password').value;
+        const ci = document.getElementById('confirm_password');
+        const cf = document.getElementById('confirm-feedback');
+        if (cp.length > 0) {
+            if (pw === cp) { ci.classList.remove('is-invalid'); ci.classList.add('is-valid'); cf.classList.remove('show'); }
+            else { ci.classList.remove('is-valid'); ci.classList.add('is-invalid'); cf.textContent = 'Les mots de passe ne correspondent pas.'; cf.classList.add('show'); }
+        } else { ci.classList.remove('is-invalid', 'is-valid'); cf.classList.remove('show'); }
+    }
+    document.getElementById('confirm_password').addEventListener('input', validateConfirmPassword);
+
+    document.getElementById('togglePasswordForm').addEventListener('click', function () {
+        const form = document.getElementById('passwordForm');
+        form.classList.toggle('visible');
+        this.innerHTML = form.classList.contains('visible')
+            ? '<i class="fas fa-times"></i>Annuler'
+            : '<i class="fas fa-key"></i>Modifier le mot de passe';
+        this.classList.toggle('btn-cancel', form.classList.contains('visible'));
+    });
+
+    document.getElementById('cancelPassword').addEventListener('click', function () {
+        const form = document.getElementById('passwordForm');
+        form.classList.remove('visible');
+        const btn = document.getElementById('togglePasswordForm');
+        btn.innerHTML = '<i class="fas fa-key"></i>Modifier le mot de passe';
+        btn.classList.remove('btn-cancel');
+        ['old_password', 'new_password', 'confirm_password'].forEach(id => {
+            document.getElementById(id).value = '';
+            document.getElementById(id).classList.remove('is-valid', 'is-invalid');
+        });
+        document.querySelectorAll('.requirement').forEach(r => r.className = 'requirement');
+        document.getElementById('password-feedback').classList.remove('show');
+        document.getElementById('confirm-feedback').classList.remove('show');
+    });
+
+    document.getElementById('savePassword').addEventListener('click', function () {
+        const oldPassword = document.getElementById('old_password').value.trim();
+        const newPassword = document.getElementById('new_password').value.trim();
+        const confirmPassword = document.getElementById('confirm_password').value.trim();
+
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            showToast('Veuillez remplir tous les champs.', 'error');
+            return;
+        }
+
+        const passwordValid = updatePasswordRequirements(newPassword);
+        if (!passwordValid) { document.getElementById('new_password').focus(); return; }
+
+        if (newPassword !== confirmPassword) {
+            validateConfirmPassword();
+            document.getElementById('confirm_password').focus();
+            return;
+        }
+
+        fetch('/api/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Mot de passe modifié avec succès.', 'success');
+                    document.getElementById('passwordForm').classList.remove('visible');
+                    const btn = document.getElementById('togglePasswordForm');
+                    btn.innerHTML = '<i class="fas fa-key"></i>Modifier le mot de passe';
+                    btn.classList.remove('btn-cancel');
+                    ['old_password', 'new_password', 'confirm_password'].forEach(id => {
+                        document.getElementById(id).value = '';
+                        document.getElementById(id).classList.remove('is-valid', 'is-invalid');
+                    });
+                    document.querySelectorAll('.requirement').forEach(r => r.className = 'requirement');
+                    document.getElementById('password-feedback').classList.remove('show');
+                    document.getElementById('confirm-feedback').classList.remove('show');
+                } else {
+                    showToast(data.message || 'Erreur lors du changement.', 'error');
+                }
+            })
+            .catch(() => showToast('Erreur de connexion au serveur.', 'error'));
+    });
+</script>
+{% endblock %}

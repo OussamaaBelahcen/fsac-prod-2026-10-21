@@ -1,0 +1,1307 @@
+{% extends "base.html" %}
+{% block title %}Consulter Dossier - Coordination{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --accent-blue: #6366f1;
+  --accent-orange: #f97316;
+}
+.consult-wrap { max-width:1340px; margin:0 auto; }
+
+/* ===== BANNER ===== */
+.banner-futur {
+  position:relative; overflow:hidden;
+  background: linear-gradient(135deg, #0B162C 0%, #043775 50%, #0258b3 100%);
+  padding:40px; border-radius:12px;
+  margin-bottom:30px; text-align:center;
+  isolation: isolate;
+}
+.banner-futur::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,.1), transparent 60%),
+              radial-gradient(ellipse at 80% 50%, rgba(255,255,255,.08), transparent 60%);
+  z-index:0;
+}
+.banner-futur h1 {
+  position:relative; z-index:1;
+  font-size:22px; font-weight:700; color:#fff; margin-bottom:8px;
+  letter-spacing:0.5px; text-transform:uppercase;
+}
+.banner-futur p {
+  position:relative; z-index:1;
+  font-size:14px; color:rgba(255,255,255,.8); margin:0; line-height:1.5;
+}
+
+/* ===== MAIN CARD ===== */
+.glass-card {
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter:blur(24px);
+  border: 1px solid rgba(255,255,255,.6);
+  border-radius: 20px;
+  box-shadow: 0 8px 44px rgba(2,88,179,.08), 0 0 0 1px rgba(0,0,0,.03);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+}
+
+/* ===== SECTION TITLE (comme dans Commission) ===== */
+.sec-title {
+  display:flex; align-items:center; gap:12px;
+  font-size:.88em; font-weight:700; color:#1e293b;
+  text-transform:uppercase; letter-spacing:.3px;
+  padding:14px 24px; margin:24px 0 16px 0;
+  background: linear-gradient(135deg, #f1f5f9, #f8fafc);
+  border-bottom: 1px solid #e2e8f0;
+  border-left: 4px solid #6366f1;
+  border-radius: 0 8px 8px 0;
+}
+.sec-title i { color:#6366f1; font-size:1.1em; }
+.sec-title-grand {
+  display:flex; align-items:center; gap:12px;
+  font-size:1.05em; font-weight:800; color:#0f172a;
+  text-transform:uppercase; letter-spacing:.4px;
+  padding:16px 24px; margin:32px 0 16px 0;
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  border-bottom: 2px solid #a5b4fc;
+  border-left: 5px solid #4f46e5;
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 2px 12px rgba(79,70,229,.08);
+}
+.sec-title-grand i { color:#4f46e5; font-size:1.2em; }
+
+/* ===== PROFILE CARD ===== */
+.profile-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
+}
+.profile-card-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 28px;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  border-bottom: 1px solid #e2e8f0;
+}
+.profile-card-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff;
+  font-size: 2rem;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, .35);
+}
+.profile-card-avatar img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+}
+.profile-card-identity h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -.2px;
+}
+.profile-card-identity p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.profile-card-identity p i { color: #6366f1; }
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  background: #fff;
+}
+.profile-grid .pg-cell {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  min-width: 0;
+}
+.profile-grid .pg-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+}
+.profile-grid .pg-label i {
+  color: #6366f1;
+  font-size: 12px;
+  width: 14px;
+  text-align: center;
+}
+.profile-grid .pg-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  word-break: break-word;
+}
+@media (max-width: 768px) {
+  .profile-grid { grid-template-columns: 1fr; }
+  .profile-card-header { flex-direction: column; text-align: center; }
+  .profile-card-identity p { justify-content: center; }
+}
+
+/* ===== ANNEXES ===== */
+.annexes-grid {
+  display:flex; flex-wrap:wrap; gap:12px; justify-content:center;
+}
+.annexes-grid .annexe-card {
+  flex:0 1 240px; min-width:200px;
+}
+.annexe-card {
+  display:flex; align-items:center; gap:12px;
+  padding:14px 16px;
+  background:rgba(255,255,255,.9);
+  border-radius:12px;
+  border:1px solid #e2e8f0;
+  text-decoration:none;
+  transition:all .25s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,.02);
+}
+.annexe-card:hover {
+  border-color:#a5b4fc;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+  transform:translateY(-2px);
+}
+.annexe-icon {
+  width:44px;height:44px;
+  border-radius:12px;
+  background:#fef2f2;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.annexe-icon i { font-size:1.5em; color:#dc3545; }
+.annexe-info { flex:1; min-width:0; }
+.annexe-title { font-weight:700; font-size:.92em; color:#0f172a; }
+.annexe-sub { font-size:.75em; color:#6c757d; margin-top:1px; }
+.annexe-arrow { color:#6366f1; font-size:.75em; font-weight:600; white-space:nowrap; }
+
+/* ===== TABLES ===== */
+.tbl-wrap {
+  overflow-x:auto; border-radius:12px; border:1px solid #e2e8f0;
+  margin-bottom:0; background:#F5F7FC;
+}
+.tbl-futur {
+  width:100%; border-collapse:collapse; font-size:13px;
+}
+.tbl-futur thead th {
+  padding:10px 14px; font-size:.7em; font-weight:700;
+  text-transform:uppercase; letter-spacing:.3px;
+  color:#475569; background:#f1f5f9;
+  border-bottom:2px solid #e2e8f0; white-space:nowrap;
+  text-align:center;
+}
+.tbl-futur.th-primary thead th,
+.tbl-futur.th-indigo thead th,
+.tbl-futur.th-violet thead th,
+.tbl-futur.th-purple thead th,
+.tbl-futur.th-teal thead th,
+.tbl-futur.th-orange thead th,
+.tbl-futur.th-vert thead th {
+  background:#f1f5f9; color:#475569; border-bottom:2px solid #e2e8f0;
+}
+.tbl-futur td {
+  padding:8px 14px; border-bottom:1px solid #f1f5f9;
+  white-space:nowrap; max-width:240px;
+  overflow:hidden; text-overflow:ellipsis; color:#1e293b;
+  text-align:center;
+}
+.tbl-futur tbody tr { transition:background .12s; }
+.tbl-futur tbody tr[data-preview] { cursor: pointer; }
+.tbl-futur tbody tr:hover { background:#f8fafc; }
+.tbl-futur tbody tr[data-preview]:hover { background:#eef4ff; }
+
+.row-preview {
+  position: fixed;
+  z-index: 8000;
+  width: min(480px, calc(100vw - 28px));
+  max-height: min(78vh, 620px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 22px 50px rgba(11, 22, 44, .22), 0 0 0 1px rgba(15, 23, 42, .06);
+}
+.row-preview[hidden] { display: none !important; }
+.row-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #0B162C, #1e3a5f);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.row-preview-head i { opacity: .85; }
+.row-preview-hint {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: .8;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+}
+.row-preview-doc-bar a {
+  color: #1d4ed8;
+  font-weight: 700;
+  text-decoration: none;
+  pointer-events: auto;
+}
+.row-preview-doc-bar a:hover { text-decoration: underline; }
+.row-preview-body {
+  overflow: auto;
+  padding: 14px;
+  background: #f4f7fb;
+}
+.row-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.row-preview-field {
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  border-radius: 10px;
+  padding: 8px 10px;
+  min-width: 0;
+}
+.row-preview-field.wide { grid-column: 1 / -1; }
+.row-preview-field .label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 3px;
+}
+.row-preview-field .value {
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #0f172a;
+  white-space: normal;
+  word-break: break-word;
+}
+.row-preview-field a { color: #1d4ed8; text-decoration: none; font-weight: 600; }
+.row-preview-field a:hover { text-decoration: underline; }
+.row-preview-doc {
+  margin-bottom: 12px;
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.row-preview-doc-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e6ebf2;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+.row-preview-doc-bar i { color: #dc2626; margin-right: 6px; }
+.row-preview-page {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, #eef2f7 0%, #e7edf5 100%);
+  min-height: 160px;
+}
+.row-preview-page canvas,
+.row-preview-page img {
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, .16);
+}
+.row-preview-status {
+  align-self: center;
+  margin: auto;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+}
+.tbl-futur .empty { text-align:center; color:#94a3b8; padding:24px; font-style:italic; }
+
+/* ===== BADGES DANS LES TABLEAUX ===== */
+.tbl-futur .badge {
+  font-size:10px; font-weight:700; padding:3px 12px;
+  border-radius:20px; text-transform:uppercase; letter-spacing:.3px;
+}
+.tbl-futur .badge.bg-info,
+.tbl-futur .badge.bg-primary {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0;
+}
+.tbl-futur .badge.bg-secondary {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0;
+}
+.tbl-futur .badge.border-secondary {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+/* ===== SUB TABLE LABEL ===== */
+.sub-lbl {
+  font-size:.78em; font-weight:700; color:#475569;
+  padding:8px 0 6px 16px; margin-bottom:4px;
+  border-left:3px solid #6366f1;
+  background:#f8fafc;
+  border-radius:0 8px 8px 0;
+  display:flex; align-items:center; gap:8px;
+}
+.sub-lbl.ar-lbl { border-left-color:#0d9488; }
+.sub-lbl .pts {
+  margin-left:auto; font-size:10px; font-weight:700;
+  color:#dc2626; background:#F5F7FC; border:1px solid #fca5a5;
+  border-radius:20px; padding:2px 10px;
+}
+.sub-tbl-wrap { margin-bottom:10px; }
+.sub-tbl-wrap:last-child { margin-bottom:0; }
+
+/* ===== GROUP CARDS ===== */
+.group-card {
+  border:1px solid #e2e8f0; border-radius:16px;
+  padding:18px 20px; margin-bottom:18px;
+  background:rgba(255,255,255,.8);
+  transition:box-shadow .3s;
+  box-shadow: 0 2px 12px rgba(0,0,0,.04);
+}
+.group-card:last-child { margin-bottom:0; }
+.group-card:hover { box-shadow:0 6px 28px rgba(0,0,0,.06); }
+.group-title {
+  font-size:.95em; font-weight:800; color:#0f172a;
+  text-transform:uppercase; letter-spacing:.5px;
+  padding:14px 24px; margin:0 -20px 14px -20px;
+  background: linear-gradient(135deg, #f1f5f9, #f8fafc);
+  border-bottom: 2px solid #e2e8f0;
+  border-left: 4px solid #6366f1;
+  display:flex; align-items:center; gap:10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.03);
+}
+.group-title.ar-title {
+  border-left-color: #0d9488;
+}
+.group-title .pts {
+  margin-left:auto; font-size:11px; font-weight:700;
+  color:#dc2626; background:#F5F7FC; border:1px solid #fca5a5;
+  border-radius:20px; padding:2px 10px;
+}
+
+/* ===== COMMENTAIRE DE LA COMMISSION ===== */
+.section-comment {
+  margin-top:12px; padding:14px 16px; border-radius:10px;
+  background:#fff5f5; border:1px solid #fecaca; border-left:4px solid #dc2626;
+}
+.section-comment-label {
+  font-size:12px; font-weight:700; color:#991b1b;
+  text-transform:uppercase; letter-spacing:.3px; margin-bottom:6px;
+  display:flex; align-items:center; gap:8px;
+}
+.section-comment-text { color:#94a3b8; font-size:14px; line-height:1.55; font-style:italic; }
+.section-comment-text.has-comment { color:#dc2626; font-style:normal; font-weight:600; }
+
+/* ===== PDF BUTTON ===== */
+.btn-pdf {
+  display:inline-flex; align-items:center; gap:4px;
+  background:#f4f8fe; color:#3c5068; border:1px solid #e0e8f2;
+  padding:4px 10px; border-radius:8px; font-size:11px;
+  text-decoration:none; white-space:nowrap; transition:all .15s;
+}
+.btn-pdf:hover { background:#e0e8f2; color:#dc2626; text-decoration:none; }
+
+/* ===== EVALUATION BOX ===== */
+.eval-box-futur {
+  border-radius:16px; padding:24px 28px; margin-top:24px;
+  background:linear-gradient(135deg, #f0fdf4, #f8fcf8);
+  border:1px solid #bbf7d0;
+}
+.eval-box-futur .eval-line {
+  display:flex; align-items:center; gap:16px; margin-bottom:12px;
+}
+.eval-box-futur .eval-note {
+  font-size:28px; font-weight:800; color:#16a34a;
+}
+.eval-box-futur .eval-comment {
+  background:rgba(255,255,255,.7); border-radius:10px;
+  padding:14px 18px; border:1px solid #dcfce7;
+}
+.eval-box-futur .eval-comment .lbl {
+  font-size:11px; font-weight:600; text-transform:uppercase;
+  color:#5b6f87; margin-bottom:4px;
+}
+.eval-box-futur .eval-comment .txt { margin:0; font-style:italic; color:#1a2b3e; font-size:14px; }
+
+/* ===== TOP EVAL RESULT ===== */
+.eval-top-wrap {
+  max-width:1340px; margin:0 auto 20px;
+}
+.eval-top-card {
+  position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  background:linear-gradient(135deg, rgba(22,163,74,.06), rgba(5,150,105,.03));
+  border:1px solid rgba(22,163,74,.2);
+  border-radius:18px; padding:20px 28px;
+  box-shadow:0 8px 32px rgba(22,163,74,.08), inset 0 1px 0 rgba(255,255,255,.6);
+  backdrop-filter:blur(12px);
+}
+.eval-top-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, #059669, #10b981, #34d399, #10b981, #059669);
+  background-size:200% 100%;
+  animation:shimmerEval 4s ease-in-out infinite;
+}
+@keyframes shimmerEval {
+  0%,100% { background-position:0% 0%; }
+  50% { background-position:100% 0%; }
+}
+.eval-top-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 18px; border-radius:30px; font-weight:700; font-size:13px;
+  background:linear-gradient(135deg, #059669, #10b981);
+  color:#fff; box-shadow:0 4px 14px rgba(5,150,105,.3);
+  text-transform:uppercase; letter-spacing:.3px;
+}
+.eval-top-note {
+  font-size:30px; font-weight:800;
+  background:linear-gradient(135deg, #059669, #10b981);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  line-height:1;
+}
+.eval-top-note small {
+  font-size:14px; font-weight:500;
+  -webkit-text-fill-color:#94a3b8;
+  color:#94a3b8;
+}
+.eval-top-comment {
+  font-size:13px; color:#4b5563; font-style:italic;
+  max-width:360px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  background:rgba(255,255,255,.6); border-radius:8px;
+  padding:6px 14px; border:1px solid rgba(22,163,74,.12);
+}
+.eval-top-comment::before { content:'"'; }
+.eval-top-comment::after { content:'"'; }
+
+/* ===== RÉASSIGNER BUTTON (refined) ===== */
+.btn-reassign {
+   display:inline-flex; align-items:center; gap:10px;
+   background:linear-gradient(135deg, rgba(249,115,22,.12), rgba(255,152,0,.08));
+   color:#ea580c; border:1.5px solid rgba(249,115,22,.35);
+   padding:12px 26px; border-radius:14px;
+   font-size:13px; font-weight:800; letter-spacing:.4px;
+   backdrop-filter:blur(20px);
+   transition:all .4s cubic-bezier(.25,1,.25,1); cursor:pointer;
+   position:relative; overflow:hidden;
+   box-shadow:0 4px 16px rgba(249,115,22,.10);
+   text-transform:uppercase;
+   text-decoration:none;
+}
+.btn-reassign::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg, #f97316, #ea580c);
+  opacity:0; transition:opacity .4s ease; z-index:-1; border-radius:inherit;
+}
+.btn-reassign:hover {
+   transform:translateY(-2px) scale(1.02);
+   box-shadow:0 12px 32px rgba(249,115,22,.25);
+   color:#fff; border-color:transparent;
+}
+.btn-reassign:hover::after { opacity:1; }
+.btn-reassign i { position:relative; z-index:1; transition:transform .4s; }
+.btn-reassign:hover i { transform:rotate(180deg); }
+
+/* Info actions */
+.info-actions {
+   display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+   margin-top:14px; padding:14px 18px;
+   background:rgba(249,115,22,.05);
+   border-radius:14px;
+   border:1px solid rgba(249,115,22,.15);
+}
+.info-badge {
+   display:flex; align-items:center; gap:8px; padding:6px 14px; border-radius:8px;
+   background:rgba(249,115,22,.08); border:1px solid rgba(249,115,22,.15);
+}
+
+/* ===== RETOUR BUTTON ===== */
+.btn-retour {
+  display:inline-flex; align-items:center; gap:6px;
+  background:#334155; color:white; border:none;
+  padding:10px 22px; border-radius:12px;
+  font-size:14px; font-weight:600;
+  transition:all .2s ease; cursor:pointer;
+}
+.btn-retour:hover { background:#1e293b; transform:translateY(-1px); }
+
+/* ===== SCROLLBAR ===== */
+.tbl-wrap::-webkit-scrollbar { height:5px; }
+.tbl-wrap::-webkit-scrollbar-track { background:#f1f5f9; border-radius:3px; }
+.tbl-wrap::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+</style>
+{% endblock %}
+
+{% macro render_sub_table(rows, columns, header_class='') %}
+<div class="tbl-wrap">
+    <table class="tbl-futur {{ header_class }}">
+        <thead>
+            <tr>
+                {% for col in columns %}
+                <th>{{ col.label }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            {% set ns = namespace(items=[]) %}
+            {% for col in columns %}
+                {% set val = row[col.key] %}
+                {% if val %}
+                    {% set ns.items = ns.items + [{'label': col.label, 'type': col.type|default('text'), 'value': val|string}] %}
+                {% endif %}
+            {% endfor %}
+            <tr{% if ns.items %} data-preview='{{ ns.items|tojson }}'{% endif %}>
+                {% for col in columns %}
+                <td>
+                    {% if col.type == 'file' and row[col.key] %}
+                        <a href="{{ url_for('static', filename=row[col.key]) }}" target="_blank" class="btn-pdf"><i class="fas fa-file-pdf text-danger"></i> Voir</a>
+                    {% elif col.type == 'link' and row[col.key] %}
+                        <a href="{{ row[col.key] }}" target="_blank" class="text-primary"><i class="fas fa-link"></i> Lien</a>
+                     {% elif col.type == 'doi' and row[col.key] %}
+                         {{ row[col.key] }}
+                    {% else %}
+                        {{ row[col.key] or '—' }}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% else %}
+            <tr><td colspan="{{ columns|length }}" class="empty">Aucune donnée.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+{% macro ae_ar_group(title, tables, ar=false, eval_info=none) %}
+<div class="group-card">
+    <div class="group-title {{ 'ar-title' if ar else '' }}">{{ title }}</div>
+    {% for label, cols, data in tables %}
+    <div class="sub-tbl-wrap">
+        <div class="sub-lbl {{ 'ar-lbl' if ar else '' }}">{{ label }}</div>
+        {{ render_sub_table(data, cols, 'th-orange' if not ar else 'th-vert') }}
+    </div>
+    {% endfor %}
+    <div class="section-comment">
+        <div class="section-comment-label"><i class="fas fa-comment-dots"></i> Commentaire de la commission</div>
+        <div class="section-comment-text{% if eval_info and eval_info.commentaire %} has-comment{% endif %}">
+            {{ eval_info.commentaire if eval_info and eval_info.commentaire else 'Aucun commentaire pour le moment.' }}
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% block content %}
+{% set departement_label = {
+    'biologie': 'Biologie',
+    'geologie': 'Géologie',
+    'physique': 'Physique',
+    'chimie': 'Chimie',
+    'mathematique-informatique': 'Mathématiques et Informatique'
+}.get(dossier.departement, dossier.departement) %}
+<div class="consult-wrap">
+<div class="banner-futur">
+    <div class="glow"></div>
+    <h1>Consultation du dossier d'avancement {{ annee }}</h1>
+    <p>{{ dossier.nom }} {{ dossier.prenom }} — {{ dossier.grade }} — {{ departement_label }}</p>
+</div>
+
+<!-- ==================== RÉSULTAT ÉVALUATION (en haut) ==================== -->
+{% if dossier.statut == 'évalué' %}
+<div class="eval-top-wrap">
+    <div class="eval-top-card">
+        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <span class="eval-top-badge"><i class="fas fa-check-circle"></i> Évalué</span>
+            <span class="eval-top-note">{{ dossier.note or '—' }} <small>/ 100</small></span>
+            <span class="eval-top-comment">{{ dossier.commentaire or 'Aucun commentaire' }}</span>
+        </div>
+        {% if session.get('role') == 'COORDINATEUR' %}
+        <button class="btn-reassign" onclick="confirmReassign({{ dossier.id }})" style="flex-shrink:0; white-space:nowrap;">
+            <i class="fas fa-sync-alt"></i> Réassigner pour réévaluation
+        </button>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="glass-card">
+
+    <!-- ==================== INFOS PERSONNELLES ==================== -->
+<div class="info-actions">
+    <div class="sec-title" style="margin:0; border:none; padding:0;"><i class="fas fa-user-circle"></i>Informations personnelles</div>
+    {% if session.get('role') == 'COORDINATEUR' and dossier.statut == 'évalué' %}
+    <div class="info-badge">
+        <i class="fas fa-info-circle" style="color:#ea580c; font-size:13px;"></i>
+        <span style="font-size:12px; color:#c2410c; font-weight:600;">Dossier déjà évalué</span>
+    </div>
+    {% endif %}
+</div>
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <div class="profile-card-avatar">
+                {% if dossier.photo %}
+                <img src="{{ url_for('static', filename=dossier.photo) }}" alt="Photo">
+                {% else %}
+                <i class="fas fa-user-tie"></i>
+                {% endif %}
+            </div>
+            <div class="profile-card-identity">
+                <h3>{{ dossier.nom }} {{ dossier.prenom }}</h3>
+                <p><i class="fas fa-graduation-cap"></i> {{ dossier.grade or 'Grade non renseigné' }}</p>
+            </div>
+        </div>
+        <div class="profile-grid">
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-user"></i>Nom</div>
+                <div class="pg-value">{{ dossier.nom or '—' }}</div>
+            </div>
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-user"></i>Prénom</div>
+                <div class="pg-value">{{ dossier.prenom or '—' }}</div>
+            </div>
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-birthday-cake"></i>Date naissance</div>
+                <div class="pg-value">{{ dossier.date_naissance.strftime('%d/%m/%Y') if dossier.date_naissance else '—' }}</div>
+            </div>
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-building"></i>Département</div>
+                <div class="pg-value">{{ departement_label or '—' }}</div>
+            </div>
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-graduation-cap"></i>Grade</div>
+                <div class="pg-value">{{ dossier.grade or '—' }}</div>
+            </div>
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-calendar-alt"></i>Période d'avancement</div>
+                <div class="pg-value">
+                    {% if dossier.date_debut_avancement and dossier.date_fin_avancement %}
+                    {{ dossier.date_debut_avancement.strftime('%d/%m/%Y') if dossier.date_debut_avancement is not string else dossier.date_debut_avancement }} →
+                    {{ dossier.date_fin_avancement.strftime('%d/%m/%Y') if dossier.date_fin_avancement is not string else dossier.date_fin_avancement }}
+                    {% else %}
+                    —
+                    {% endif %}
+                </div>
+            </div>
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-id-card"></i>PPR</div>
+                <div class="pg-value">{{ dossier.ppr or '—' }}</div>
+            </div>
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-university"></i>Établissement</div>
+                <div class="pg-value">{{ dossier.etablissement or '—' }}</div>
+            </div>
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-phone-alt"></i>Téléphone</div>
+                <div class="pg-value">{{ dossier.telephone or '—' }}</div>
+            </div>
+            <div class="pg-cell">
+                <div class="pg-label"><i class="fas fa-envelope"></i>Email</div>
+                <div class="pg-value">{{ dossier.email or '—' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== ANNEXES SIGNÉES ==================== -->
+    {% set annexes_signed = [
+        ('I', 'AE - Activités d\'Enseignement', 'fas fa-graduation-cap', 'th-indigo', dossier.annexe_i_signe),
+        ('II', 'AR - Activités de Recherche', 'fas fa-tasks', 'th-purple', dossier.annexe_ii_signe),
+    ] %}
+    {% set has_signed = annexes_signed | selectattr(4) | list | length > 0 %}
+    {% if has_signed %}
+    <div class="sec-title" style="margin-top:24px;"><i class="fas fa-signature"></i>Annexes signées</div>
+    <div class="annexes-grid">
+        {% for num, label, icon, th_class, filepath in annexes_signed %}
+        {% if filepath %}
+        <a href="{{ url_for('static', filename=filepath) }}" target="_blank" class="annexe-card">
+            <div class="annexe-icon"><i class="fas fa-file-pdf"></i></div>
+            <div class="annexe-info">
+                <div class="annexe-title">Annexe {{ num }}</div>
+                <div class="annexe-sub">{{ label }}</div>
+            </div>
+            <span class="annexe-arrow"><i class="fas fa-arrow-right"></i></span>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+        <!-- ==================== AE : ACTIVITÉS D'ENSEIGNEMENT ==================== -->
+        <div class="sec-title-grand"><i class="fas fa-chalkboard-teacher"></i>Activités d'Enseignement (AE)</div>
+
+        {{ ae_ar_group('AE1 — Production Pédagogique', [
+            ('AE1-1 : Publications d\'ouvrages (ISSN/ISBN)', [
+                {'key':'ae1_1_titres','label':'Titres'},
+                {'key':'ae1_1_auteurs','label':'Auteurs'},
+                {'key':'ae1_1_niveaux','label':'Niveaux'},
+                {'key':'ae1_1_editeurs','label':'Éditeurs'},
+                {'key':'ae1_1_annees','label':'Années'},
+                {'key':'ae1_1_justificatifs','label':'Justificatif','type':'file'},
+                {'key':'ae1_1_numero_depot','label':'N° dépôt / ISSN/ISBN'},
+            ], ae_data.ae1_1),
+            ('AE1-2 : Manuels ou polycopiés', [
+                {'key':'ae1_2_fichiers','label':'Fichier','type':'file'},
+                {'key':'ae1_2_auteurs','label':'Auteurs'},
+                {'key':'ae1_2_departements','label':'Département'},
+                {'key':'ae1_2_annees','label':'Année'},
+                {'key':'ae1_2_filieres','label':'Filière'},
+                {'key':'ae1_2_semestres','label':'Semestre'},
+            ], ae_data.ae1_2),
+            ('AE 1-3 Supports NTIC et Innovations pédagogiques (diaporamas, didacticiels, miseen place de nouveaux TPs, page web ou homepage à caractère pédagogique)', [
+                {'key':'ae1_3_objectifs','label':'Objectifs'},
+                {'key':'ae1_3_auteurs','label':'Auteurs'},
+                {'key':'ae1_3_filieres','label':'Filière'},
+                {'key':'ae1_3_niveaux','label':'Niveau'},
+                {'key':'ae1_3_annees','label':'Année'},
+                {'key':'ae1_3_liens','label':'Lien','type':'link'},
+                {'key':'ae1_3_support_ntic','label':'Support NTIC'},
+                {'key':'ae1_3_types','label':'Type de support'},
+                {'key':'ae1_3_fichiers','label':'Fichier','type':'file'},
+            ], ae_data.ae1_3),
+        ], eval_info=evaluations_by_key.get('ae1')) }}
+
+        {{ ae_ar_group('AE2 — Encadrement Pédagogique', [
+            ('AE2-1 : Encadrement de cours, TD, TP et PFE (Licence)', [
+                {'key':'ae2_1_fichiers','label':'Justificatif','type':'file'},
+                {'key':'ae2_1_annees_univ','label':'Année'},
+                {'key':'ae2_1_types','label':'Type de Licence'},
+                {'key':'ae2_1_filieres','label':'Intitulé de la Licence'},
+                {'key':'ae2_1_intitules','label':'Type'},
+                {'key':'ae2_1_intitule_module','label':'Intitulé du module'},
+                {'key':'ae2_1_details','label':'Intitulé du PFE'},
+                {'key':'ae2_1_modules','label':'Module / Élément'},
+                {'key':'ae2_1_departements','label':'Département'},
+                {'key':'ae2_1_coenseignants','label':'Co-encadrant(s)'},
+                {'key':'ae2_1_type_encadrement','label':'Type encadrante'},
+            ], ae_data.ae2_1),
+            ("AE 2-2 Encadrement de cours et mémoires de fin d'étude (cycle Master)", [
+                {'key':'ae2_2_fichiers','label':'Justificatif','type':'file'},
+                {'key':'ae2_2_annees_univ','label':'Année'},
+                {'key':'ae2_2_types','label':'Type de Master'},
+                {'key':'ae2_2_filieres','label':'Intitulé du Master'},
+                {'key':'ae2_2_intitules','label':'Cours'},
+                {'key':'ae2_2_nom_etudiants','label':'Intitulé du mémoire'},
+                {'key':'ae2_2_coordonnateurs','label':'Coordonnateur'},
+                {'key':'ae2_2_coenseignants','label':'Co-encadrant(s)'},
+                {'key':'ae2_2_type_encadrement','label':'Type d\'activité'},
+            ], ae_data.ae2_2),
+            ("AE 2-3 Encadrement d'autres activités (sorties de terrain, animation de séminaires ou formations,…)", [
+                {'key':'ae2_3_types','label':'Type de formation'},
+                {'key':'ae2_3_nom_etudiants','label':'Établissement'},
+                {'key':'ae2_3_dates','label':'Date'},
+                {'key':'ae2_3_lieux','label':'Lieu'},
+                {'key':'ae2_3_durees','label':'Période'},
+            ], ae_data.ae2_3),
+        ], eval_info=evaluations_by_key.get('ae2')) }}
+
+        {{ ae_ar_group('AE3 — Responsabilités Pédagogiques', [
+            ('AE3-1 : Chef de département ou membre de collège (ou bureau) du département', [
+                {'key':'ae3_1_fichiers','label':'Attestation','type':'file'},
+                {'key':'ae3_1_natures','label':'Nature de la responsabilité'},
+                {'key':'ae3_1_periodes','label':'Période'},
+                {'key':'ae3_1_mandats','label':'Nombre de mandats'},
+            ], ae_data.ae3_1),
+            ('AE3-2 : Coordonnateur de filière', [
+                {'key':'ae3_2_fichiers','label':'Attestation','type':'file'},
+                {'key':'ae3_2_titres','label':'Intitulé de la filière'},
+                {'key':'ae3_2_accreditations','label':'Nb accréditations'},
+                {'key':'ae3_2_periodes','label':'Période'},
+            ], ae_data.ae3_2),
+            ('AE3-3 : Responsable de module', [
+                {'key':'ae3_3_fichiers','label':'Attestation du chef de département / responsable du master','type':'file'},
+                {'key':'ae3_3_titres','label':'Intitulé du module'},
+                {'key':'ae3_3_filieres','label':'Filière'},
+                {'key':'ae3_3_periodes','label':'Période'},
+            ], ae_data.ae3_3),
+            ('AE3-4 : Membre conseil d\'Établissement', [
+                {'key':'ae3_4_fichiers','label':'Attestation','type':'file'},
+                {'key':'ae3_4_periodes','label':'Période du mandat'},
+            ], ae_data.ae3_4),
+            ('AE3-5 : Membre conseil d\'Université', [
+                {'key':'ae3_5_fichiers','label':'Attestation','type':'file'},
+                {'key':'ae3_5_periodes','label':'Période du mandat'},
+            ], ae_data.ae3_5),
+            ('AE3-6 : Membre commission scientifique', [
+                {'key':'ae3_6_fichiers','label':'Attestation','type':'file'},
+                {'key':'ae3_6_periodes','label':'Période du mandat'},
+            ], ae_data.ae3_6),
+            ("AE 3-7 Membre de commission d'expertise ou d'évaluation pédagogique à l'échelle nationale ou internationale", [
+                {'key':'ae3_7_fichiers','label':'Attestation','type':'file'},
+                {'key':'ae3_7_natures','label':'Nature de l\'activité'},
+                {'key':'ae3_7_dates','label':'Date'},
+                {'key':'ae3_7_lieux','label':'Lieu'},
+            ], ae_data.ae3_7),
+        ], eval_info=evaluations_by_key.get('ae3')) }}
+
+        <!-- ==================== AR : ACTIVITÉS DE RECHERCHE ==================== -->
+        <div class="sec-title-grand"><i class="fas fa-flask"></i>Activités de Recherche (AR)</div>
+
+        {{ ae_ar_group('AR1 — Production Scientifique', [
+            ('AR 1-1 Publications scientifiques dans des revues spécialisées indexées (Scopus, Webof Knowledge)', [
+                {'key':'ar1_1_lien','label':'Lien publication','type':'link'},
+                {'key':'ar1_1_referenceComplete','label':'Références + DOI'},
+                {'key':'ar1_1_doctorantsCoAuteurs','label':'Doctorants co-auteurs'},
+                {'key':'ar1_1_cedList','label':'Liste CED','type':'file'},
+            ], ar_data.ar1_1),
+            ('AR 1-2 Publications dans les actes de manifestations scientifiques avec comité de lecture', [
+                {'key':'ar1_2_lienSite','label':'Lien','type':'link'},
+                {'key':'ar1_2_reference','label':'Référence du proceeding ou titre de la communication'},
+                {'key':'ar1_2_natureTravail','label':'Nature activité'},
+                {'key':'ar1_2_nomEvenement','label':'Manifestation'},
+                {'key':'ar1_2_lieu','label':'Lieu'},
+                {'key':'ar1_2_dateEvenement','label':'Date'},
+                {'key':'ar1_2_lienSite','label':'Lien','type':'link'},
+                {'key':'ar1_2_attestation','label':'Attestation', 'type': 'file'},
+                {'key':'ar1_2_premiere_page','label':'1ère page', 'type': 'file'},
+            ], ar_data.ar1_2),
+            ('AR 1-3 Ouvrages de recherche édités (livres ou chapitres de livres)', [
+                {'key':'ar1_3_typeOuvrage','label':'Type'},
+                {'key':'ar1_3_titreOuvrage','label':'Titre'},
+                {'key':'ar1_3_auteurs','label':'Auteurs'},
+                {'key':'ar1_3_maisonEditions','label':'Maison d’éditions'},
+                {'key':'ar1_3_annee','label':'Année'},
+                {'key':'ar1_3_issn','label':'ISSN/ISBN'},
+                {'key':'ar1_3_page_garde','label':'Copie ouvrage','type':'file'},
+            ], ar_data.ar1_3),
+            ('AR 1-4 Publications scientifiques dans des revues spécialisées nationales ou internationales avec comité de lecture', [
+                {'key':'ar1_4_referenceComplete','label':'Références'},
+                {'key':'ar1_4_doctorantsCoAuteurs','label':'Doctorants co-auteurs'},
+                {'key':'ar1_4_publication_url','label':'Lien publication','type':'link'},
+                {'key':'ar1_4_lien','label':'Copie 1ère page','type':'file'},
+                {'key':'ar1_4_cedList','label':'Liste CED','type':'file'},
+            ], ar_data.ar1_4),
+        ], ar=true, eval_info=evaluations_by_key.get('ar1')) }}
+
+        {{ ae_ar_group('AR2 — Encadrement de la Recherche', [
+            ('AR2-1 : Thèses soutenues / en cours', [
+                {'key':'ar2_1_these','label':'Fichier','type':'file'},
+                {'key':'ar2_1_nomAuteur','label':'Doctorant(s)'},
+                {'key':'ar2_1_titreThese','label':'Titre'},
+                {'key':'ar2_1_institution','label':'Établissement'},
+                {'key':'ar2_1_dateSoutenance','label':'Date soutenance'},
+                {'key':'ar2_1_type','label':'Type'},
+            ], ar_data.ar2_1),
+            ('AR2-2 : Jurys de thèse / HDR', [
+                {'key':'ar2_2_fichiers','label':'Invitation','type':'file'},
+                {'key':'ar2_2_page_garde','label':'Page de garde','type':'file'},
+                {'key':'ar2_2_nomAuteur','label':'Auteur'},
+                {'key':'ar2_2_typeTravail','label':'Type'},
+                {'key':'ar2_2_titre','label':'Intitulé'},
+                {'key':'ar2_2_institution','label':'Établissement'},
+                {'key':'ar2_2_dateSoutenance','label':'Date'},
+                {'key':'ar2_2_role','label':'Rôle'},
+            ], ar_data.ar2_2),
+        ], ar=true, eval_info=evaluations_by_key.get('ar2')) }}
+
+        {{ ae_ar_group('AR3 — Direction & Expertise', [
+            ('AR 3-1 Directeur de structure de recherche (laboratoire, pôle de compétence, centre thématique de recherche,…)', [
+                {'key':'ar3_1_fichiers','label':'Attestation','type':'file'},
+                {'key':'ar3_1_nomStructure','label':'Appellation'},
+                {'key':'ar3_1_adresseStructure','label':'Adresse'},
+                {'key':'ar3_1_periode','label':'Période'},
+            ], ar_data.ar3_1),
+            ('AR3-2 : Animation d\'équipes', [
+                {'key':'ar3_2_fichiers','label':'Attestation','type':'file'},
+                {'key':'ar3_2_nomEquipe','label':'Appellation'},
+                {'key':'ar3_2_adresseEquipe','label':'Adresse'},
+                {'key':'ar3_2_structure_parente','label':'Structure dépendante'},
+                {'key':'ar3_2_periode','label':'Période'},
+            ], ar_data.ar3_2),
+            ('AR 3-3 Responsable ou participant dans des projets ou contrats de recherche financés', [
+                {'key':'ar3_3_fichiers','label':'Contrat','type':'file'},
+                {'key':'ar3_3_attestation_responsable','label':'Attestation','type':'file'},
+                {'key':'ar3_3_role','label':'Rôle'},
+                {'key':'ar3_3_nomResponsable','label':'Responsable'},
+                {'key':'ar3_3_nature','label':'Nature'},
+                {'key':'ar3_3_titre','label':'Titre'},
+                {'key':'ar3_3_montant','label':'Montant'},
+                {'key':'ar3_3_duree','label':'Période'},
+                {'key':'ar3_3_partenaire','label':'Partenaire'},
+            ], ar_data.ar3_3),
+            ("AR 3-4 Activités d'expertise et d'évaluation scientifique à l'échelle nationale ou internationale (CNACES, CNRST, reviewer, editorial board, editor-in-chief,…)", [
+                {'key':'ar3_4_fichiers','label':'Attestation','type':'file'},
+                {'key':'ar3_4_typeActivite','label':'Type'},
+                {'key':'ar3_4_objet','label':'Objet'},
+                {'key':'ar3_4_date','label':'Date'},
+            ], ar_data.ar3_4),
+        ], ar=true, eval_info=evaluations_by_key.get('ar3')) }}
+
+        {{ ae_ar_group('AR4 — Activités de Recherche', [
+            ("AR 4-1 Animation de structures d'interaction avec le milieu socio-économique et organisation de manifestations scientifiques (séminaires, colloques, congrès, forums,…)", [
+                {'key':'ar4_1_fichiers','label':'Document','type':'file'},
+                {'key':'ar4_1_titre','label':'Titre manifestation/animation'},
+                {'key':'ar4_1_lieu','label':'Lieu'},
+                {'key':'ar4_1_date','label':'Date'},
+                {'key':'ar4_1_role','label':'Rôle'},
+            ], ar_data.ar4_1),
+            ("AR 4-2 Expertise et valorisation d'actions et de travaux au profit du milieu socio-économique (organisations non gouvernementales, secteur privé, organismes internationaux, secteur public)", [
+                {'key':'ar4_2_fichiers','label':'Document','type':'file'},
+                {'key':'ar4_2_nature','label':'Nature'},
+                {'key':'ar4_2_organisme','label':'Organisme'},
+                {'key':'ar4_2_lieu','label':'Lieu'},
+                {'key':'ar4_2_date','label':'Date'},
+            ], ar_data.ar4_2),
+            ("AR 4-3 Travaux de recherche et innovations (Dépôt de brevets au profit de l'établissement, conception de prototypes, incubation de projets de recherche et de développement, prix,…)", [
+                {'key':'ar4_3_fichiers','label':'Document','type':'file'},
+                {'key':'ar4_3_type_activite','label':'Type activité'},
+                {'key':'ar4_3_nature_activite','label':'Nature de l’activité'},
+                {'key':'ar4_3_date','label':'Date'},
+            ], ar_data.ar4_3),
+        ], ar=true, eval_info=evaluations_by_key.get('ar4')) }}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Modal de confirmation réassignation -->
+<div class="modal-overlay-super" id="reassignModal" style="display:none;">
+    <div class="modal-box-super" style="max-width:460px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:16px;background:rgba(249,115,22,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i class="fas fa-sync-alt" style="font-size:28px;color:#f97316;"></i>
+        </div>
+        <h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:#0b1e33;">Réassigner ce dossier ?</h3>
+        <p style="color:#5b6f87;font-size:14px;margin:0 0 24px;line-height:1.6;">
+            L'évaluation actuelle sera réinitialisée et le membre de commission recevra une notification pour réévaluer ce dossier.
+        </p>
+        <div class="d-flex gap-3 justify-content-center">
+            <button style="padding:10px 28px;border-radius:10px;border:1.5px solid #d0d8e3;background:#F5F7FC;color:#3c5068;font-weight:600;font-size:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='#94a3b8'" onmouseout="this.style.borderColor='#d0d8e3'" onclick="document.getElementById('reassignModal').style.display='none'">Annuler</button>
+            <button class="btn-reassign" id="confirmReassignBtn" onclick="doReassign()" style="padding:10px 28px;border-radius:10px;">
+                <i class="fas fa-sync-alt"></i> Confirmer
+            </button>
+        </div>
+    </div>
+</div>
+<style>
+.modal-overlay-super {
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.45);
+    backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center;
+    z-index:9999;
+}
+.modal-box-super {
+    background:#F5F7FC; border-radius:16px;
+    padding:32px 28px; width:90%; max-width:480px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.2);
+}
+</style>
+<div class="row-preview" id="rowPreview" hidden></div>
+<script src="{{ url_for('static', filename='vendor/pdfjs/pdf.min.js') }}"></script>
+<script>
+(function () {
+    const bubble = document.getElementById('rowPreview');
+    if (!bubble) return;
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ url_for('static', filename='vendor/pdfjs/pdf.worker.min.js') }}";
+    }
+    let renderToken = 0;
+    let hideTimer = null;
+    let suppressUntilLeave = false;
+    const HIDE_AFTER_MS = 600;
+
+    function cursorInside(row, x, y) {
+        const rect = row.getBoundingClientRect();
+        return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    }
+
+    function cancelHide() {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+    }
+
+    function armHide() {
+        if (hideTimer) return;
+        hideTimer = setTimeout(function () {
+            hideTimer = null;
+            hideNow();
+        }, HIDE_AFTER_MS);
+    }
+
+    function fileUrl(path) {
+        if (!path) return '';
+        if (/^https?:\/\//i.test(path)) return path;
+        return '/static/' + path.replace(/^\/+/, '');
+    }
+
+    function isImage(path) {
+        return /\.(png|jpe?g|gif|webp)$/i.test(path || '');
+    }
+
+    function addTextField(parent, labelText, value, wide) {
+        const field = document.createElement('div');
+        field.className = 'row-preview-field' + (wide ? ' wide' : '');
+        const label = document.createElement('span');
+        label.className = 'label';
+        label.textContent = labelText || '';
+        const span = document.createElement('span');
+        span.className = 'value';
+        span.textContent = value || '—';
+        field.appendChild(label);
+        field.appendChild(span);
+        parent.appendChild(field);
+    }
+
+    function renderPdfPage(url, pageBox, token) {
+        const status = document.createElement('div');
+        status.className = 'row-preview-status';
+        status.textContent = 'Chargement de la page…';
+        pageBox.appendChild(status);
+        if (!window.pdfjsLib) {
+            status.textContent = 'Aperçu indisponible.';
+            return;
+        }
+        pdfjsLib.getDocument(url).promise.then(function (pdf) {
+            return pdf.getPage(1);
+        }).then(function (page) {
+            if (token !== renderToken) return;
+            const base = page.getViewport({ scale: 1 });
+            const scale = Math.min(420 / base.width, 1.5);
+            const viewport = page.getViewport({ scale: scale });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise.then(function () {
+                if (token !== renderToken) return;
+                status.remove();
+                pageBox.appendChild(canvas);
+                if (bubble._row) placeBubble(bubble._row);
+            });
+        }).catch(function () {
+            if (token !== renderToken) return;
+            status.textContent = 'Impossible d’afficher cette page.';
+        });
+    }
+
+    function renderBubble(items) {
+        const token = ++renderToken;
+        bubble.replaceChildren();
+        const head = document.createElement('div');
+        head.className = 'row-preview-head';
+        head.innerHTML = '<i class="fas fa-eye"></i><span>Aperçu</span>';
+        const hint = document.createElement('button');
+        hint.type = 'button';
+        hint.className = 'row-preview-hint';
+        hint.textContent = 'Cliquer la ligne pour fermer';
+        hint.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeFromUser();
+        });
+        head.appendChild(hint);
+        const body = document.createElement('div');
+        body.className = 'row-preview-body';
+        bubble.appendChild(head);
+        bubble.appendChild(body);
+
+        items.forEach(function (item) {
+            if (item.type !== 'file') return;
+            (item.value || '').split(';').map(function (part) { return part.trim(); }).filter(Boolean).forEach(function (path) {
+                const url = fileUrl(path);
+                const name = path.split('/').pop();
+                const doc = document.createElement('div');
+                doc.className = 'row-preview-doc';
+                const bar = document.createElement('div');
+                bar.className = 'row-preview-doc-bar';
+                const title = document.createElement('span');
+                title.innerHTML = '<i class="fas fa-file-pdf"></i>';
+                title.appendChild(document.createTextNode(item.label || 'Fichier'));
+                const link = document.createElement('a');
+                link.href = encodeURI(url);
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.textContent = 'Ouvrir';
+                link.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+                bar.appendChild(title);
+                bar.appendChild(link);
+                const pageBox = document.createElement('div');
+                pageBox.className = 'row-preview-page';
+                doc.appendChild(bar);
+                doc.appendChild(pageBox);
+                body.appendChild(doc);
+                if (isImage(path)) {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = name;
+                    pageBox.appendChild(img);
+                } else {
+                    renderPdfPage(url, pageBox, token);
+                }
+            });
+        });
+
+        const grid = document.createElement('div');
+        grid.className = 'row-preview-grid';
+        items.forEach(function (item) {
+            if (item.type === 'file') return;
+            if (item.type === 'link') {
+                const field = document.createElement('div');
+                field.className = 'row-preview-field wide';
+                const label = document.createElement('span');
+                label.className = 'label';
+                label.textContent = item.label || 'Lien';
+                const link = document.createElement('a');
+                link.className = 'value';
+                link.href = item.value;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.textContent = item.value;
+                field.appendChild(label);
+                field.appendChild(link);
+                grid.appendChild(field);
+            } else {
+                addTextField(grid, item.label, item.value, (item.value || '').length > 42);
+            }
+        });
+        if (grid.childElementCount) body.appendChild(grid);
+    }
+
+    function placeBubble(row) {
+        const rect = row.getBoundingClientRect();
+        const margin = 16;
+        bubble.hidden = false;
+        bubble.style.display = 'flex';
+        const width = bubble.offsetWidth || 420;
+        const height = bubble.offsetHeight || 180;
+        const left = Math.max(margin, window.innerWidth - width - margin);
+        let top = rect.top;
+        if (top + height > window.innerHeight - margin) top = window.innerHeight - height - margin;
+        if (top < margin) top = margin;
+        bubble.style.left = left + 'px';
+        bubble.style.top = top + 'px';
+    }
+
+    function show(row) {
+        if (suppressUntilLeave) return;
+        cancelHide();
+        let items = [];
+        try { items = JSON.parse(row.dataset.preview || '[]'); } catch (e) { items = []; }
+        if (!items.length) return;
+        bubble._row = row;
+        renderBubble(items);
+        placeBubble(row);
+    }
+
+    function hideNow() {
+        cancelHide();
+        bubble._row = null;
+        bubble.hidden = true;
+        bubble.style.display = 'none';
+        renderToken += 1;
+    }
+
+    function closeFromUser() {
+        suppressUntilLeave = true;
+        hideNow();
+    }
+
+    function overPreviewRow(x, y) {
+        const el = document.elementFromPoint(x, y);
+        return !!(el && el.closest && el.closest('tr[data-preview]'));
+    }
+
+    document.querySelectorAll('tr[data-preview]').forEach(function (row) {
+        row.addEventListener('mouseenter', function () { show(row); });
+        row.addEventListener('mouseleave', armHide);
+        row.addEventListener('click', function (event) {
+            if (event.target.closest('a, button')) return;
+            closeFromUser();
+        });
+    });
+
+    bubble.addEventListener('mouseenter', cancelHide);
+    bubble.addEventListener('mouseleave', function () {
+        if (!suppressUntilLeave) armHide();
+    });
+
+    document.addEventListener('mousemove', function (event) {
+        if (suppressUntilLeave) {
+            if (!overPreviewRow(event.clientX, event.clientY)) suppressUntilLeave = false;
+            return;
+        }
+        if (bubble.style.display === 'none' || !bubble._row) return;
+        const onRow = cursorInside(bubble._row, event.clientX, event.clientY);
+        const el = document.elementFromPoint(event.clientX, event.clientY);
+        const onBubble = !!(el && bubble.contains(el));
+        if (onRow || onBubble) cancelHide();
+        else armHide();
+    });
+})();
+
+function confirmReassign(dossierId) {
+    document.getElementById('reassignModal').dataset.dossierId = dossierId;
+    document.getElementById('reassignModal').style.display = 'flex';
+}
+function doReassign() {
+    const btn = document.getElementById('confirmReassignBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
+    const dossierId = document.getElementById('reassignModal').dataset.dossierId;
+    fetch('/api/reassign-dossier/' + dossierId, { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            location.reload();
+        } else {
+            alert(d.message || 'Erreur');
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> Confirmer la réassignation';
+        }
+    })
+    .catch(() => {
+        alert('Erreur serveur');
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> Confirmer la réassignation';
+    });
+}
+</script>
+{% endblock %}

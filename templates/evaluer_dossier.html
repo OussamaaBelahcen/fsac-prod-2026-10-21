@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Évaluer le Dossier' if dossier.statut == 'soumis' else 'Consultation du Dossier' }} - Commission{%
+endblock %}
+
+{% block extra_css %}
+<style>
+    .dossier-card {
+        background: #F5F7FC;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgb(105, 105, 105);
+        padding: 40px;
+        margin-bottom: 25px;
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #495057;
+        font-size: 14px;
+    }
+
+    .form-control,
+    .form-textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-control:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .note-input {
+        max-width: 120px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 25px;
+        align-items: start;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @keyframes popupIn {
+        from { opacity:0; transform:scale(.9) translateY(20px); }
+        to { opacity:1; transform:scale(1) translateY(0); }
+    }
+
+    .btn-evaluer {
+        background: var(--success-color);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-evaluer:hover {
+        background: #218838;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 12px;
+    }
+
+    .info-label {
+        font-weight: 600;
+        min-width: 180px;
+        color: #495057;
+    }
+
+    .info-value {
+        flex: 1;
+    }
+
+    .subsection {
+        margin-top: 15px;
+        padding-left: 10px;
+        border-left: 2px solid #e9ecef;
+    }
+
+    .subsection h4 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-evalue {
+        background: #cce5ff;
+        color: #004085;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <h2>
+        <i class="fas fa-folder-open me-2"></i>
+        {% if dossier.statut == 'soumis' %}
+        Évaluer le Dossier
+        {% else %}
+        Consultation du Dossier
+        {% endif %}
+    </h2>
+
+    <div class="dossier-card">
+        <!-- Informations personnelles -->
+        <div style="max-width:580px; margin:0 auto 24px;">
+            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:0; box-shadow:0 8px 30px rgba(59,130,246,.08), 0 1px 3px rgba(0,0,0,.04); overflow:hidden;">
+                <div style="height:5px; background:linear-gradient(90deg,#2563eb,#7c3aed,#2563eb);"></div>
+                <div style="padding:28px 32px 24px; background:radial-gradient(ellipse at 50% 0%, rgba(59,130,246,.03) 0%, transparent 70%);">
+                    <div style="display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:20px;">
+                        <div style="position:relative; margin-bottom:12px;">
+                            {% if dossier.photo %}
+                            <img src="{{ url_for('static', filename=dossier.photo) }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #fff; box-shadow:0 4px 16px rgba(59,130,246,.15);">
+                            {% else %}
+                            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#eff6ff,#dbeafe);display:flex;align-items:center;justify-content:center;border:3px solid #fff; box-shadow:0 4px 16px rgba(59,130,246,.15);">
+                                <i class="fas fa-user" style="font-size:1.6rem;color:#3b82f6;"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <h3 style="margin:0; font-size:17px; font-weight:700; color:#0f172a;">Informations personnelles</h3>
+                    </div>
+                    <div style="background:#f8fafc; border-radius:10px; padding:16px 20px;">
+                        <div style="display:grid; grid-template-columns:auto 1fr; gap:8px 20px;">
+                            <span style="font-size:12px; font-weight:600; color:#64748b;">Nom</span>
+                            <span style="font-size:14px; font-weight:500; color:#0f172a;">{{ dossier.nom }}</span>
+                            <span style="font-size:12px; font-weight:600; color:#64748b;">Prénom</span>
+                            <span style="font-size:14px; font-weight:500; color:#0f172a;">{{ dossier.prenom }}</span>
+                            <span style="font-size:12px; font-weight:600; color:#64748b;">Né(e) le</span>
+                            <span style="font-size:14px; font-weight:500; color:#0f172a;">{{ dossier.date_naissance.strftime('%d/%m/%Y') if dossier.date_naissance else '—' }}</span>
+                            <span style="font-size:12px; font-weight:600; color:#64748b;">Grade</span>
+                            <span style="font-size:14px; font-weight:500; color:#0f172a;">{{ dossier.grade }}</span>
+                            <span style="font-size:12px; font-weight:600; color:#64748b;">Département</span>
+                            <span style="font-size:14px; font-weight:500; color:#0f172a;">{{ dossier.departement }}</span>
+                            <span style="font-size:12px; font-weight:600; color:#64748b;">Période d'avancement</span>
+                            <span style="font-size:14px; font-weight:500; color:#0f172a;">{{ dossier.periode_avancement }}</span>
+                            <span style="font-size:12px; font-weight:600; color:#64748b;">Établissement</span>
+                            <span style="font-size:14px; font-weight:500; color:#0f172a;">{{ dossier.etablissement or '—' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activités d'enseignement (AE) -->
+        <div class="section">
+            <h3><i class="fas fa-chalkboard-teacher me-2"></i>Activités d'Enseignement (AE)</h3>
+            <div class="subsection">
+                <h4>AE1 - Production pédagogique</h4>
+                <p><strong>Publications d'ouvrages :</strong> {{ dossier.ae1_1_titres or '—' }}</p>
+                <p><strong>Manuels ou polycopiés :</strong><br>
+                    {% if dossier.ae1_2_fichiers %}
+                    {% for fich in dossier.ae1_2_fichiers.split('\n') %}
+                    <a href="{{ url_for('static', filename='uploads/' + fich.split('/')[-1]) }}" target="_blank"
+                        class="file-link">
+                        <i class="fas fa-file-pdf"></i> Voir fichier
+                    </a><br>
+                    {% endfor %}
+                    {% else %}—{% endif %}
+                </p>
+                <p><strong>Innovations pédagogiques :</strong><br>
+                    {% if dossier.ae1_3_fichiers %}
+                    {% for fich in dossier.ae1_3_fichiers.split('\n') %}
+                    <a href="{{ url_for('static', filename='uploads/' + fich.split('/')[-1]) }}" target="_blank"
+                        class="file-link">
+                        <i class="fas fa-file-pdf"></i> Voir fichier
+                    </a><br>
+                    {% endfor %}
+                    {% else %}—{% endif %}
+                </p>
+            </div>
+            <div class="subsection">
+                <h4>AE2 - Encadrement pédagogique</h4>
+                <p><strong>Encadrement Licence :</strong> {{ dossier.ae2_1_annees_univ or '—' }}</p>
+                <p><strong>Encadrement Master :</strong> {{ dossier.ae2_2_annees_univ or '—' }}</p>
+            </div>
+            <div class="subsection">
+                <h4>AE3 - Responsabilités pédagogiques</h4>
+                <p><strong>Chef de département :</strong>
+                    {% if dossier.ae3_1_fichiers %}
+                    {% for fich in dossier.ae3_1_fichiers.split('\n') %}
+                    <a href="{{ url_for('static', filename='uploads/' + fich.split('/')[-1]) }}" target="_blank"
+                        class="file-link">
+                        <i class="fas fa-file-pdf"></i> Voir fichier
+                    </a>
+                    {% endfor %}
+                    {% else %}—{% endif %}
+                </p>
+                <p><strong>Coordinateur de filière :</strong>
+                    {% if dossier.ae3_2_fichiers %}
+                    {% for fich in dossier.ae3_2_fichiers.split('\n') %}
+                    <a href="{{ url_for('static', filename='uploads/' + fich.split('/')[-1]) }}" target="_blank"
+                        class="file-link">
+                        <i class="fas fa-file-pdf"></i> Voir fichier
+                    </a>
+                    {% endfor %}
+                    {% else %}—{% endif %}
+                </p>
+                <p><strong>Responsable de module :</strong>
+                    {% if dossier.ae3_3_fichiers %}
+                    {% for fich in dossier.ae3_3_fichiers.split('\n') %}
+                    <a href="{{ url_for('static', filename='uploads/' + fich.split('/')[-1]) }}" target="_blank"
+                        class="file-link">
+                        <i class="fas fa-file-pdf"></i> Voir fichier
+                    </a>
+                    {% endfor %}
+                    {% else %}—{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Activités de recherche (AR) -->
+        <div class="section">
+            <h3><i class="fas fa-flask me-2"></i>Activités de Recherche (AR)</h3>
+            <div class="subsection">
+                <h4>AR1 - Production scientifique</h4>
+                <p><strong>Revues indexées :</strong> {% if dossier.ar1_1_publications %}{{
+                    dossier.ar1_1_publications.count('\n') + 1 }} publications{% else %}—{% endif %}</p>
+                <p><strong>Actes de conférences :</strong> {% if dossier.ar1_2_actes %}{{
+                    dossier.ar1_2_actes.count('\n') + 1 }} publications{% else %}—{% endif %}</p>
+            </div>
+            <div class="subsection">
+                <h4>AR2 - Encadrement scientifique</h4>
+                <p><strong>Thèses soutenues :</strong>
+                    {% if dossier.ar2_1_fichiers %}
+                    {% for fich in dossier.ar2_1_fichiers.split('\n') %}
+                    <a href="{{ url_for('static', filename='uploads/' + fich.split('/')[-1]) }}" target="_blank"
+                        class="file-link">
+                        <i class="fas fa-file-pdf"></i> Voir fichier
+                    </a>
+                    {% endfor %}
+                    {% else %}—{% endif %}
+                </p>
+            </div>
+            <div class="subsection">
+                <h4>AR3 - Responsabilités scientifiques</h4>
+                <p><strong>Directeur de labo :</strong>
+                    {% if dossier.ar3_1_fichiers %}
+                    {% for fich in dossier.ar3_1_fichiers.split('\n') %}
+                    <a href="{{ url_for('static', filename='uploads/' + fich.split('/')[-1]) }}" target="_blank"
+                        class="file-link">
+                        <i class="fas fa-file-pdf"></i> Voir fichier
+                    </a>
+                    {% endfor %}
+                    {% else %}—{% endif %}
+                </p>
+                <p><strong>Responsable d'équipe :</strong>
+                    {% if dossier.ar3_2_fichiers %}
+                    {% for fich in dossier.ar3_2_fichiers.split('\n') %}
+                    <a href="{{ url_for('static', filename='uploads/' + fich.split('/')[-1]) }}" target="_blank"
+                        class="file-link">
+                        <i class="fas fa-file-pdf"></i> Voir fichier
+                    </a>
+                    {% endfor %}
+                    {% else %}—{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Évaluation (uniquement si statut = 'soumis') -->
+        {% if dossier.statut == 'soumis' %}
+        <div class="section" style="background:#F8F4FF; border:2px solid #BDA4EB; border-radius:16px; padding:28px; box-shadow:0 8px 30px rgba(189,164,235,0.15); margin-top:24px;">
+            <h3 style="background:#BDA4EB; color:#fff; padding:14px 22px; border-radius:12px; font-size:17px; font-weight:700; margin:-28px -28px 24px -28px; letter-spacing:.3px; display:flex; align-items:center; gap:10px; box-shadow:0 4px 15px rgba(189,164,235,0.35);"><i class="fas fa-poll"></i>Note - Commentaire & Appréciation</h3>
+            <div style="display:grid; grid-template-columns:1fr 2fr; gap:24px; align-items:start;">
+                <div>
+                    <label style="display:block; font-weight:700; margin-bottom:8px; color:#4a3f6b; font-size:14px;">Note globale (sur 100)</label>
+                    <div style="position:relative;">
+                        <input type="number" id="noteGlobale" class="form-control note-input" min="0" max="100" required style="max-width:140px; padding:12px 14px; border:2px solid #E8E0F5; border-radius:10px; font-size:16px; font-weight:600; background:#fff; transition:border-color .25s; box-shadow:0 2px 6px rgba(0,0,0,.04);" onfocus="this.style.borderColor='#BDA4EB'; this.style.boxShadow='0 0 0 4px rgba(189,164,235,0.15)'" onblur="this.style.borderColor='#E8E0F5'; this.style.boxShadow='none'">
+                        <span style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#BDA4EB; font-weight:700; font-size:14px;">/ 100</span>
+                    </div>
+                </div>
+                <div>
+                    <label style="display:block; font-weight:700; margin-bottom:8px; color:#4a3f6b; font-size:14px;">Commentaire</label>
+                    <textarea id="commentaire" class="form-textarea"
+                        placeholder="Veuillez fournir un commentaire détaillé..."
+                        style="width:100%; min-height:100px; padding:12px 16px; border:2px solid #E8E0F5; border-radius:10px; font-size:14px; background:#fff; resize:vertical; transition:border-color .25s, box-shadow .25s; box-shadow:0 2px 6px rgba(0,0,0,.04);"
+                        onfocus="this.style.borderColor='#BDA4EB'; this.style.boxShadow='0 0 0 4px rgba(189,164,235,0.15)'"
+                        onblur="this.style.borderColor='#E8E0F5'; this.style.boxShadow='none'"></textarea>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Résultat (si déjà évalué) -->
+        {% if dossier.statut == 'évalué' %}
+        <div class="section">
+            <h3><i class="fas fa-check-double me-2"></i>Résultat de l'évaluation</h3>
+            <div class="status-badge status-evalue">
+                <i class="fas fa-check-double"></i> Évalué
+            </div>
+            <p style="margin-top: 15px;"><strong>Note :</strong> {{ dossier.note or '—' }} / 100</p>
+            <p><strong>Commentaire :</strong> {{ dossier.commentaire or 'Aucun commentaire' }}</p>
+        </div>
+        {% endif %}
+
+        <div class="form-actions" style="display: flex; justify-content: space-between; margin-top: 30px;">
+            <button class="btn btn-secondary" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i> Retour
+            </button>
+            {% if dossier.statut == 'soumis' %}
+            <button class="btn btn-success" id="submitEvaluationBtn" onclick="submitEvaluation()">
+                <i class="fas fa-paper-plane"></i> Soumettre l'évaluation
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function showPopup(type, title, message) {
+        const existing = document.querySelector('.custom-popup-overlay');
+        if (existing) existing.remove();
+
+        const isSuccess = type === 'success';
+        const isWarning = type === 'warning';
+        const iconColor = isSuccess ? '#10b981' : '#ef4444';
+        const iconClass = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
+        const bgColor = isWarning ? '#fffbeb' : (isSuccess ? '#ecfdf5' : '#fef2f2');
+        const btnColor = isSuccess ? '#10b981' : '#ef4444';
+
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-popup-overlay';
+        overlay.style.cssText = `
+            position:fixed; inset:0; z-index:99999;
+            background:rgba(15,23,42,.5); backdrop-filter:blur(4px);
+            display:flex; align-items:center; justify-content:center;
+            padding:20px;
+        `;
+
+        overlay.innerHTML = `
+            <div style="
+                background:#fff; border-radius:20px; padding:0;
+                width:100%; max-width:400px;
+                box-shadow:0 25px 60px rgba(0,0,0,.2);
+                overflow:hidden; animation:popupIn .3s ease;
+            ">
+                <div style="padding:40px 32px 24px; text-align:center;">
+                    <div style="
+                        width:64px; height:64px; border-radius:50%;
+                        background:${bgColor};
+                        display:flex; align-items:center; justify-content:center;
+                        margin:0 auto 16px;
+                    ">
+                        <i class="fas ${iconClass}" style="font-size:28px; color:${iconColor};"></i>
+                    </div>
+                    <h4 style="margin:0 0 8px; font-size:18px; font-weight:700; color:#0f172a;">${title}</h4>
+                    <p style="margin:0 0 24px; font-size:14px; color:#64748b; line-height:1.5;">${message}</p>
+                    <button onclick="this.closest('.custom-popup-overlay').remove()" style="
+                        background:${btnColor}; color:#fff; border:none;
+                        padding:10px 40px; border-radius:10px;
+                        font-size:14px; font-weight:600; cursor:pointer;
+                        transition:opacity .2s;
+                    " onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">OK</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.remove();
+        });
+    }
+
+    function submitEvaluation() {
+        const note = document.getElementById('noteGlobale').value;
+        const commentaire = document.getElementById('commentaire').value.trim();
+
+        if (!note || note < 0 || note > 100) {
+            showPopup('warning', 'Note invalide', 'Veuillez entrer une note valide entre 0 et 100.');
+            return;
+        }
+
+        fetch("{{ url_for('api_evaluer_dossier', dossier_id=dossier.id) }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
+            },
+            body: JSON.stringify({
+                note: parseFloat(note),
+                commentaire: commentaire
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showPopup('success', 'Évaluation soumise', 'Évaluation soumise avec succès !');
+                    setTimeout(() => { window.location.href = "{{ url_for('membrecommission') }}"; }, 1500);
+                } else {
+                    showPopup('error', 'Erreur', data.message || 'Impossible de soumettre l\'évaluation.');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showPopup('error', 'Erreur réseau', 'Une erreur réseau est survenue.');
+            });
+    }
+</script>
+{% endblock %}
